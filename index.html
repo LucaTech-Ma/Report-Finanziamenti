@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Report Finanziamenti</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* Stile "Executive Editorial" di Luca (2-aree/06-brand-personale-asset/identita/stile-frontend.md): testata da rivista, card piatte con filetto superiore, griglie a linee, serif per titoli e grandi numeri, mono per kicker, date e tabelle. Tema unico chiaro: carta e inchiostro. */
+:root{
+  --paper:#FAF8F5; --card:#FFFFFF; --deep:#F2EFE9;
+  --ink:#141413; --ink-2:#57534E; --meta:#78716C;
+  --s200:#E7E5E4; --s300:#D6D3D1; --s800:#292524;
+  --accent:#0B5D3B; --oxford:#1E3A5F; --amber:#B45309; --stone:#57534E;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.kicker{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.15em;color:var(--accent);margin:0 0 4px}
+@media (prefers-reduced-motion: no-preference){ .t{transition:background-color .2s ease, color .2s ease, border-color .2s ease, opacity .2s ease} }
+
+.wrap{max-width:1240px;margin-inline:auto;padding-block:28px 112px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:grid;gap:32px}
+.wrap > *{min-width:0}
+
+/* testata */
+.masthead{display:grid;gap:14px}
+.mast-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--meta);padding-bottom:10px;border-bottom:2px solid var(--ink)}
+.mast-top b{color:var(--ink);font-weight:500}
+.mast-title{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+h1{font-family:var(--serif);font-weight:700;font-size:clamp(2.1rem,4.5vw,2.75rem);letter-spacing:-.01em;line-height:1.08;margin:0}
+.dek{font-family:var(--serif);font-style:italic;font-size:1.15rem;color:var(--ink-2);margin:6px 0 0;max-width:62ch}
+.nav{display:flex;gap:28px;border-bottom:1px solid var(--s200)}
+.nav button{font:inherit;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--meta);background:none;border:0;border-bottom:2px solid transparent;padding:10px 0;margin-bottom:-1px;cursor:pointer}
+.nav button:hover{color:var(--ink)}
+.nav button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+h2{font-family:var(--serif);font-weight:600;font-size:1.45rem;letter-spacing:-.01em;line-height:1.15;margin:0}
+h3{font-family:var(--serif);font-weight:600;font-size:1.15rem;letter-spacing:-.01em;line-height:1.2;margin:0}
+.sub{font-family:var(--serif);font-style:italic;color:var(--ink-2);margin:2px 0 0;font-size:.98rem}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+
+/* elementi */
+.panel{background:var(--card);border-top:2px solid var(--ink);border-left:1px solid var(--s200);border-right:1px solid var(--s200);border-bottom:1px solid var(--s200);min-width:0}
+.panel.hl{border-top-color:var(--accent)}
+.panel-h{padding:18px 22px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.panel-b{padding:16px 22px 22px;position:relative}
+.btn{display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;padding:10px 20px;border-radius:0;cursor:pointer;border:1px solid var(--ink);background:transparent;color:var(--ink)}
+.btn:hover{background:rgba(231,229,228,.5)}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn.primary:hover{background:var(--accent);border-color:var(--accent)}
+.btn.danger{color:var(--ink-2);border-color:var(--ink-2);border-style:dashed}
+.btn.danger:hover{background:rgba(20,20,19,.05)}
+.btn.danger.confirm{background:var(--ink);color:var(--paper);border-style:solid}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible,.nav button:focus-visible,.seg button:focus-visible,select:focus-visible,.inp:focus-visible,tr[tabindex]:focus-visible,.navitem:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;padding:4px 8px;border-radius:2px;border:1px solid var(--s300);color:var(--ink-2);background:var(--card);white-space:nowrap}
+.badge.crit{border-color:var(--accent);color:var(--accent)}
+
+/* filtri */
+.filters{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end;padding:16px 0;border-top:1px solid var(--s200);border-bottom:1px solid var(--s200)}
+.fgroup{display:grid;gap:6px}
+.flabel{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--meta)}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--ink)}
+.seg button{font:inherit;font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink);background:transparent;border:0;border-right:1px solid var(--ink);padding:7px 12px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:rgba(231,229,228,.5)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.sel{position:relative}
+.sel select{appearance:none;-webkit-appearance:none;font:inherit;font-size:13px;font-weight:500;color:var(--ink);background:var(--card);border:1px solid var(--s300);border-radius:0;padding:7px 30px 7px 10px;cursor:pointer;max-width:100%}
+.sel select:hover{border-color:var(--ink)}
+.sel::after{content:"";position:absolute;right:11px;top:50%;width:6px;height:6px;border-right:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+
+/* KPI: una fascia unica divisa da linee */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--card);border-top:2px solid var(--ink);border-left:1px solid var(--s200);border-right:1px solid var(--s200);border-bottom:1px solid var(--s200)}
+.kpi{padding:18px 22px 20px;display:grid;gap:6px;align-content:start;border-right:1px solid var(--s200)}
+.kpi:last-child{border-right:0}
+.kpi-v{font-family:var(--serif);font-weight:600;font-size:clamp(2.2rem,3.6vw,2.9rem);letter-spacing:-.01em;line-height:1;font-variant-numeric:lining-nums tabular-nums}
+.kpi-s{font-size:12.5px;color:var(--ink-2)}
+.kpi-d{font-family:var(--mono);font-size:11.5px;color:var(--meta);display:flex;gap:6px;flex-wrap:wrap;align-items:baseline;padding-top:8px;margin-top:4px;border-top:1px solid var(--s200)}
+.kpi-d .v{font-weight:500;color:var(--ink)}
+.kpi-d .v.up{color:var(--accent)}
+.kpi-d .v.down{color:var(--ink-2)}
+.note-band{font-family:var(--serif);font-style:italic;color:var(--ink-2);margin:-18px 0 0;font-size:.95rem}
+.skel{background:var(--s200);height:12px}
+@media (prefers-reduced-motion: no-preference){ .skel{animation:pulse 1.6s ease-in-out infinite} @keyframes pulse{50%{opacity:.5}} }
+
+/* grafici */
+.charts{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px}
+.chart svg{display:block;width:100%;height:auto}
+.chart .bar{transition:opacity .15s ease}
+.chart.hovering .bar{opacity:.3}
+.chart.hovering .bar.on{opacity:1}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--meta)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;display:inline-block}
+.legend i.line{height:2px}
+.tip{position:absolute;pointer-events:none;z-index:5;background:var(--card);border-top:2px solid var(--ink);border-left:1px solid var(--s200);border-right:1px solid var(--s200);border-bottom:1px solid var(--s200);padding:8px 10px;font-size:12px;min-width:160px}
+.tip .k{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);margin-bottom:4px}
+.tip .row{display:flex;justify-content:space-between;gap:16px;font-family:var(--mono);font-size:11.5px}
+.tip .sw{display:inline-block;width:8px;height:8px;margin-right:6px}
+
+/* tabelle */
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-family:var(--mono);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);padding:10px 12px;text-align:right;white-space:nowrap;border-top:1px solid var(--s800);border-bottom:1px solid var(--s800)}
+thead tr.grp th{border-top:0;border-bottom:1px solid var(--s200);font-size:10px;color:var(--meta);padding:6px 12px}
+td{padding:11px 12px;border-bottom:1px solid var(--s200);text-align:right;white-space:nowrap;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:12.5px}
+th:first-child,td:first-child{text-align:left}
+td:first-child{font-family:var(--sans);font-weight:600;font-size:13px}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover td{background:var(--paper)}
+tbody tr.click:hover td:first-child{color:var(--accent)}
+tbody tr.tot td{border-top:1px solid var(--ink);border-bottom:2px solid var(--ink);font-weight:600}
+.dim{color:var(--meta)}
+
+/* dettaglio */
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:24px}
+.kv{display:grid;padding:4px 22px 18px}
+.kv .r{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-bottom:1px solid var(--s200);font-size:13px;color:var(--ink-2)}
+.kv .r:last-child{border-bottom:0}
+.kv .r b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;color:var(--ink)}
+.kv .r.tot{color:var(--ink);font-weight:600;border-top:1px solid var(--ink)}
+.kv .r .p{font-family:var(--mono);font-size:11.5px;color:var(--meta);margin-left:10px}
+
+.empty{display:grid;gap:8px;padding:40px 24px;text-align:left}
+.empty p{margin:0;color:var(--ink-2)}
+
+/* inserimento */
+.etop{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:flex-end;padding:16px 0;border-top:1px solid var(--s200);border-bottom:1px solid var(--s200)}
+.entry{display:grid;grid-template-columns:230px minmax(0,1fr);gap:28px;align-items:start}
+.enav{display:grid;border-top:2px solid var(--ink)}
+.navitem{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink-2);background:none;border:0;border-bottom:1px solid var(--s200);border-left:3px solid transparent;padding:11px 10px;cursor:pointer;text-align:left}
+.navitem:hover{color:var(--ink);background:var(--card)}
+.navitem[aria-pressed="true"]{color:var(--ink);border-left-color:var(--accent);background:var(--card)}
+.navitem .meta{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--meta)}
+.navitem.done .meta{color:var(--ink)}
+.navitem .mark{font-family:var(--mono);font-size:11px;color:var(--s300);margin-right:8px}
+.navitem.done .mark{color:var(--oxford)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:24px}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;padding:14px 22px 0}
+.field{display:grid;gap:5px}
+.field label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--meta)}
+.inp{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13.5px;width:100%;padding:8px 10px;border:1px solid var(--s300);border-radius:0;background:var(--card);color:var(--ink);text-align:right;min-width:0}
+.inp[type="text"]{font-family:var(--sans);text-align:left}
+.inp:hover{border-color:var(--meta)}
+.inp:focus{border-color:var(--ink)}
+.sum{margin:16px 22px 20px;padding:10px 12px;background:var(--deep);font-size:12.5px;color:var(--ink-2)}
+.sum b{font-family:var(--mono);color:var(--ink);font-weight:500}
+.addm{display:flex;gap:8px;padding:12px 22px 0}
+.check{display:flex;gap:10px;align-items:center;font-size:13.5px;padding:14px 22px 0;cursor:pointer}
+.check input{width:16px;height:16px;accent-color:var(--ink)}
+.actionbar{position:sticky;bottom:calc(env(safe-area-inset-bottom, 0px) + 12px);z-index:10;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:var(--card);border-top:2px solid var(--ink);border-left:1px solid var(--s200);border-right:1px solid var(--s200);border-bottom:1px solid var(--s200)}
+.actionbar .left{font-family:var(--serif);font-style:italic;color:var(--ink-2)}
+.actionbar .right{display:flex;gap:8px;flex-wrap:wrap}
+
+.toast{position:fixed;right:max(16px, calc(env(safe-area-inset-right, 0px) + 16px));bottom:calc(env(safe-area-inset-bottom, 0px) + 16px);z-index:40;max-width:360px;padding:12px 16px;background:var(--card);border-top:2px solid var(--ink);border-left:1px solid var(--s200);border-right:1px solid var(--s200);border-bottom:1px solid var(--s200);font-size:13px}
+.toast.err{border-top-color:var(--accent)}
+.toast b{display:block;font-family:var(--serif);font-size:1.05rem;font-weight:600}
+.toast span{color:var(--ink-2)}
+@media (prefers-reduced-motion: no-preference){ .toast{animation:in .2s ease} @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}} }
+
+.foot{display:grid;gap:6px;padding-top:14px;border-top:1px solid var(--s200);font-size:12px;color:var(--meta);max-width:100ch}
+.foot p{margin:0}
+
+@media (max-width:1000px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .kpi:nth-child(2){border-right:0} .kpi:nth-child(-n+2){border-bottom:1px solid var(--s200)} .charts{grid-template-columns:1fr} }
+@media (max-width:760px){ .entry{grid-template-columns:1fr} .enav{display:flex;overflow-x:auto;border-top:2px solid var(--ink)} .navitem{white-space:nowrap;border-left:0;border-bottom:2px solid transparent} .navitem[aria-pressed="true"]{border-bottom-color:var(--accent)} .navitem .meta{display:none} }
+@media (max-width:460px){ .kpis{grid-template-columns:1fr} .kpi{border-right:0;border-bottom:1px solid var(--s200)} .kpi:last-child{border-bottom:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="mast-top"><span>Gruppo Autoimport · Report direzionale</span><span id="stato-dati"></span></div>
+    <div class="mast-title">
+      <div>
+        <h1>Report Finanziamenti</h1>
+        <p class="dek">Contratti, immatricolazioni e finanziamenti per marchio, mese dopo mese.</p>
+      </div>
+      <span id="azione-testata"></span>
+    </div>
+    <nav class="nav" aria-label="Sezioni">
+      <button id="tab-cruscotto" class="t" aria-pressed="true">Cruscotto</button>
+      <button id="tab-inserisci" class="t" aria-pressed="false">Inserisci un mese</button>
+    </nav>
+  </header>
+  <div id="vista" style="display:grid;gap:32px"></div>
+  <div class="foot">
+    <p><b>Come si leggono i numeri.</b> Nei periodi di più mesi i conteggi si sommano e le percentuali si ricalcolano sui totali. Il confronto è con il periodo precedente: il mese prima, il trimestre prima, l'anno prima. Un mese in corso non viene confrontato sui conteggi.</p>
+    <p><b>Differenze con il foglio Excel.</b> Qui Leapmotor e CA + Leasys entrano nei totali di gruppo e nei finanziamenti; alcune formule del foglio li escludevano o davano errore (#RIF!).</p>
+  </div>
+</div>
+<div id="toast-slot"></div>
+
+<script>window.DATI_STATICI = {"generato":"26 ottobre 2026","mesi":[{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"agos_km0":1,"agos_nuovo":0,"sfs":15},"immatricolazioni":{"km0":0,"nuovo":38},"leasing":0,"liquidazioni":20,"loyalty":5,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":4,"nuovo":38}},"leapmotor":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":1},"immatricolazioni":{"km0":0,"nuovo":1},"leasing":0,"liquidazioni":1,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":1}},"mazda":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":16},"immatricolazioni":{"km0":0,"nuovo":33},"leasing":0,"liquidazioni":19,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":30}},"opel":{"agos":{"km0":6,"nuovo":1,"usato":29},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":15,"agos_nuovo":2,"ca_leasys":0,"sfs":34},"immatricolazioni":{"km0":0,"nuovo":93},"leasing":2,"liquidazioni":39,"loyalty":31,"loyalty_modelli":{"ASTRA":1,"CORSA":19,"CROSSLAND":0,"FRONTERA":0,"GRANDLAND":0,"MOKKA":11},"rental":1,"rifinanziamenti":7,"usato_finanziato":3,"vendite":{"km0":25,"nuovo":56}},"peugeot":{"agos":{"km0":5,"nuovo":1,"usato":1},"captive":{"km0":2,"nuovo":1},"finanziamenti":{"agos_km0":13,"agos_nuovo":1,"sfs":27},"immatricolazioni":{"km0":0,"nuovo":40},"leasing":0,"liquidazioni":22,"loyalty":13,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":27,"nuovo":37}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":39},"immatricolazioni":{"km0":0,"nuovo":114},"leasing":0,"liquidazioni":40,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":0,"nuovo":96}}},"fonte":"Excel, foglio Novembre '24","gruppo":{"usato":0,"vfg":0},"mese":"2024-11"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":8},"finanziamenti":{"agos_km0":0,"agos_nuovo":1,"sfs":13},"immatricolazioni":{"km0":0,"nuovo":28},"leasing":0,"liquidazioni":24,"loyalty":9,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":2,"nuovo":20}},"leapmotor":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":1},"immatricolazioni":{"km0":0,"nuovo":0},"leasing":0,"liquidazioni":1,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":2}},"mazda":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":7},"immatricolazioni":{"km0":0,"nuovo":22},"leasing":0,"liquidazioni":19,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":18}},"opel":{"agos":{"km0":2,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":2,"agos_nuovo":0,"ca_leasys":0,"sfs":50},"immatricolazioni":{"km0":0,"nuovo":40},"leasing":1,"liquidazioni":35,"loyalty":29,"loyalty_modelli":{"ASTRA":1,"CORSA":17,"CROSSLAND":0,"FRONTERA":0,"GRANDLAND":3,"MOKKA":8},"rental":1,"rifinanziamenti":3,"usato_finanziato":3,"vendite":{"km0":18,"nuovo":48}},"peugeot":{"agos":{"km0":2,"nuovo":0,"usato":1},"captive":{"km0":2,"nuovo":1},"finanziamenti":{"agos_km0":2,"agos_nuovo":0,"sfs":23},"immatricolazioni":{"km0":0,"nuovo":66},"leasing":0,"liquidazioni":30,"loyalty":13,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":14,"nuovo":30}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":28},"immatricolazioni":{"km0":0,"nuovo":105},"leasing":0,"liquidazioni":57,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":1,"nuovo":75}}},"fonte":"Excel, foglio Dicembre '24","gruppo":{"usato":0,"vfg":0},"mese":"2024-12"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":4,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"agos_km0":4,"agos_nuovo":0,"sfs":21},"immatricolazioni":{"km0":0,"nuovo":32},"leasing":0,"liquidazioni":14,"loyalty":12,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":7,"nuovo":45}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":2},"immatricolazioni":{"km0":0,"nuovo":4},"leasing":0,"liquidazioni":1,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":9}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":12},"immatricolazioni":{"km0":0,"nuovo":20},"leasing":0,"liquidazioni":14,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":20}},"opel":{"agos":{"km0":1,"nuovo":2,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":1,"agos_nuovo":2,"ca_leasys":0,"sfs":46},"immatricolazioni":{"km0":0,"nuovo":29},"leasing":1,"liquidazioni":43,"loyalty":28,"loyalty_modelli":{"ASTRA":1,"CORSA":13,"CROSSLAND":0,"FRONTERA":0,"GRANDLAND":4,"MOKKA":10},"rental":3,"rifinanziamenti":9,"usato_finanziato":3,"vendite":{"km0":33,"nuovo":41}},"peugeot":{"agos":{"km0":4,"nuovo":1,"usato":1},"captive":{"km0":2,"nuovo":1},"finanziamenti":{"agos_km0":4,"agos_nuovo":1,"sfs":40},"immatricolazioni":{"km0":0,"nuovo":72},"leasing":0,"liquidazioni":29,"loyalty":25,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":9,"nuovo":58}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":40},"immatricolazioni":{"km0":0,"nuovo":109},"leasing":0,"liquidazioni":33,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":1,"nuovo":97}}},"fonte":"Excel, foglio Gennaio 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-01"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":4,"nuovo":0},"captive":{"km0":2,"nuovo":1},"finanziamenti":{"agos_km0":0,"agos_nuovo":2,"sfs":20},"immatricolazioni":{"km0":0,"nuovo":44},"leasing":0,"liquidazioni":20,"loyalty":10,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":7,"nuovo":46}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":1},"immatricolazioni":{"km0":0,"nuovo":8},"leasing":0,"liquidazioni":1,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":7}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":13},"immatricolazioni":{"km0":0,"nuovo":20},"leasing":0,"liquidazioni":8,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":26}},"opel":{"agos":{"km0":5,"nuovo":0,"usato":19},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":5,"agos_nuovo":0,"ca_leasys":0,"sfs":29},"immatricolazioni":{"km0":0,"nuovo":29},"leasing":1,"liquidazioni":44,"loyalty":16,"loyalty_modelli":{"ASTRA":0,"CORSA":9,"CROSSLAND":0,"FRONTERA":1,"GRANDLAND":4,"MOKKA":2},"rental":3,"rifinanziamenti":9,"usato_finanziato":3,"vendite":{"km0":39,"nuovo":31}},"peugeot":{"agos":{"km0":5,"nuovo":1,"usato":1},"captive":{"km0":2,"nuovo":1},"finanziamenti":{"agos_km0":5,"agos_nuovo":0,"sfs":31},"immatricolazioni":{"km0":0,"nuovo":39},"leasing":0,"liquidazioni":25,"loyalty":22,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":14,"nuovo":45}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":51},"immatricolazioni":{"km0":0,"nuovo":127},"leasing":0,"liquidazioni":35,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":1,"nuovo":130}}},"fonte":"Excel, foglio Febbraio 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-02"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":2,"nuovo":1},"finanziamenti":{"agos_km0":0,"agos_nuovo":1,"sfs":33},"immatricolazioni":{"km0":0,"nuovo":67},"leasing":0,"liquidazioni":23,"loyalty":12,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":4,"nuovo":72}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":2,"nuovo":4},"immatricolazioni":{"km0":0,"nuovo":3},"leasing":0,"liquidazioni":1,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":10}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":17},"immatricolazioni":{"km0":0,"nuovo":38},"leasing":0,"liquidazioni":17,"loyalty":0,"rental":0,"vendite":{"km0":1,"nuovo":32}},"opel":{"agos":{"km0":1,"nuovo":1,"usato":16},"captive":{"km0":0,"nuovo":5},"finanziamenti":{"agos_km0":2,"agos_nuovo":1,"ca_leasys":0,"sfs":42},"immatricolazioni":{"km0":11,"nuovo":39},"leasing":10,"liquidazioni":44,"loyalty":19,"loyalty_modelli":{"ASTRA":0,"CORSA":10,"CROSSLAND":0,"FRONTERA":1,"GRANDLAND":2,"MOKKA":6},"rental":2,"rifinanziamenti":6,"usato_finanziato":3,"vendite":{"km0":27,"nuovo":48}},"peugeot":{"agos":{"km0":2,"nuovo":1,"usato":1},"captive":{"km0":2,"nuovo":14},"finanziamenti":{"agos_km0":2,"agos_nuovo":1,"sfs":36},"immatricolazioni":{"km0":0,"nuovo":37},"leasing":0,"liquidazioni":49,"loyalty":21,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":23,"nuovo":47}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":57},"immatricolazioni":{"km0":0,"nuovo":151},"leasing":0,"liquidazioni":62,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":1,"nuovo":134}}},"fonte":"Excel, foglio Marzo 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-03"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":1,"sfs":17},"immatricolazioni":{"km0":0,"nuovo":30},"leasing":0,"liquidazioni":24,"loyalty":7,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":4,"nuovo":39}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":4},"immatricolazioni":{"km0":0,"nuovo":10},"leasing":0,"liquidazioni":4,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":16}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":12},"immatricolazioni":{"km0":0,"nuovo":30},"leasing":0,"liquidazioni":9,"loyalty":0,"rental":0,"vendite":{"km0":1,"nuovo":22}},"opel":{"agos":{"km0":0,"nuovo":0,"usato":12},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":1,"ca_leasys":0,"sfs":35},"immatricolazioni":{"km0":0,"nuovo":81},"leasing":6,"liquidazioni":29,"loyalty":23,"loyalty_modelli":{"ASTRA":1,"CORSA":13,"CROSSLAND":0,"FRONTERA":1,"GRANDLAND":2,"MOKKA":6},"rental":2,"rifinanziamenti":6,"usato_finanziato":3,"vendite":{"km0":19,"nuovo":42}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":2,"nuovo":36},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":35},"immatricolazioni":{"km0":0,"nuovo":62},"leasing":0,"liquidazioni":31,"loyalty":18,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":14,"nuovo":37}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":31},"immatricolazioni":{"km0":0,"nuovo":100},"leasing":0,"liquidazioni":39,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":0,"nuovo":90}}},"fonte":"Excel, foglio Aprile 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-04"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":15},"immatricolazioni":{"km0":0,"nuovo":40},"leasing":0,"liquidazioni":11,"loyalty":3,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":9,"nuovo":37}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":2},"immatricolazioni":{"km0":0,"nuovo":8},"leasing":0,"liquidazioni":4,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":8}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":10},"immatricolazioni":{"km0":0,"nuovo":30},"leasing":0,"liquidazioni":17,"loyalty":0,"rental":0,"vendite":{"km0":2,"nuovo":25}},"opel":{"agos":{"km0":1,"nuovo":5,"usato":25},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":40},"immatricolazioni":{"km0":0,"nuovo":90},"leasing":8,"liquidazioni":35,"loyalty":27,"loyalty_modelli":{"ASTRA":0,"CORSA":16,"CROSSLAND":0,"FRONTERA":3,"GRANDLAND":1,"MOKKA":7},"rental":1,"rifinanziamenti":2,"usato_finanziato":3,"vendite":{"km0":22,"nuovo":66}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":2,"nuovo":31},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":31},"immatricolazioni":{"km0":0,"nuovo":60},"leasing":0,"liquidazioni":28,"loyalty":20,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":15,"nuovo":46}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":49},"immatricolazioni":{"km0":0,"nuovo":185},"leasing":0,"liquidazioni":38,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":0,"nuovo":123}}},"fonte":"Excel, foglio Maggio 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-05"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":17},"immatricolazioni":{"km0":0,"nuovo":5},"leasing":0,"liquidazioni":9,"loyalty":7,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":3,"nuovo":32}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":1},"immatricolazioni":{"km0":0,"nuovo":1},"leasing":0,"liquidazioni":2,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":15}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":9},"immatricolazioni":{"km0":0,"nuovo":5},"leasing":0,"liquidazioni":11,"loyalty":0,"rental":0,"vendite":{"km0":2,"nuovo":27}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":6},"captive":{"km0":0,"nuovo":8},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":36},"immatricolazioni":{"km0":0,"nuovo":5},"leasing":1,"liquidazioni":26,"loyalty":23,"loyalty_modelli":{"ASTRA":0,"CORSA":10,"CROSSLAND":0,"FRONTERA":5,"GRANDLAND":2,"MOKKA":6},"rental":1,"rifinanziamenti":2,"usato_finanziato":3,"vendite":{"km0":20,"nuovo":45}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":17},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":22},"immatricolazioni":{"km0":0,"nuovo":5},"leasing":0,"liquidazioni":20,"loyalty":19,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":17,"nuovo":23}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":39},"immatricolazioni":{"km0":0,"nuovo":5},"leasing":0,"liquidazioni":52,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":0,"nuovo":84}}},"fonte":"Excel, foglio Giugno 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-06"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":11},"immatricolazioni":{"km0":0,"nuovo":18},"leasing":0,"liquidazioni":10,"loyalty":11,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":9,"nuovo":24}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":1},"immatricolazioni":{"km0":0,"nuovo":13},"leasing":0,"liquidazioni":0,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":12}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":3},"immatricolazioni":{"km0":0,"nuovo":15},"leasing":0,"liquidazioni":8,"loyalty":0,"rental":0,"vendite":{"km0":1,"nuovo":11}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":6},"captive":{"km0":0,"nuovo":13},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":19},"immatricolazioni":{"km0":0,"nuovo":31},"leasing":1,"liquidazioni":14,"loyalty":8,"loyalty_modelli":{"ASTRA":0,"CORSA":5,"CROSSLAND":0,"FRONTERA":3,"GRANDLAND":0,"MOKKA":0},"rental":1,"rifinanziamenti":2,"usato_finanziato":3,"vendite":{"km0":17,"nuovo":42}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":16},"immatricolazioni":{"km0":0,"nuovo":13},"leasing":0,"liquidazioni":8,"loyalty":10,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":26,"nuovo":27}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":20},"immatricolazioni":{"km0":0,"nuovo":128},"leasing":0,"liquidazioni":25,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":5,"nuovo":85}}},"fonte":"Excel, foglio Luglio 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-07"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":15},"immatricolazioni":{"km0":0,"nuovo":25},"leasing":0,"liquidazioni":7,"loyalty":10,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":8,"nuovo":22}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":4},"immatricolazioni":{"km0":0,"nuovo":7},"leasing":0,"liquidazioni":4,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":26}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":6},"immatricolazioni":{"km0":0,"nuovo":12},"leasing":0,"liquidazioni":4,"loyalty":0,"rental":0,"vendite":{"km0":1,"nuovo":11}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":6},"captive":{"km0":0,"nuovo":14},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":17},"immatricolazioni":{"km0":0,"nuovo":50},"leasing":1,"liquidazioni":13,"loyalty":9,"loyalty_modelli":{"ASTRA":0,"CORSA":4,"CROSSLAND":0,"FRONTERA":2,"GRANDLAND":0,"MOKKA":3},"rental":1,"rifinanziamenti":2,"usato_finanziato":3,"vendite":{"km0":12,"nuovo":20}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":26},"immatricolazioni":{"km0":0,"nuovo":21},"leasing":0,"liquidazioni":28,"loyalty":3,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":9,"nuovo":20}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":24},"immatricolazioni":{"km0":0,"nuovo":21},"leasing":0,"liquidazioni":9,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":1,"nuovo":49}}},"fonte":"Excel, foglio Agosto 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-08"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":23},"immatricolazioni":{"km0":0,"nuovo":29},"leasing":0,"liquidazioni":15,"loyalty":7,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":24,"nuovo":33}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":13},"immatricolazioni":{"km0":0,"nuovo":18},"leasing":3,"liquidazioni":2,"loyalty":0,"rental":2,"vendite":{"km0":0,"nuovo":361}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":14},"immatricolazioni":{"km0":0,"nuovo":29},"leasing":0,"liquidazioni":16,"loyalty":0,"rental":0,"vendite":{"km0":4,"nuovo":31}},"opel":{"agos":{"km0":2,"nuovo":1,"usato":17},"captive":{"km0":0,"nuovo":33},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":62},"immatricolazioni":{"km0":0,"nuovo":106},"leasing":5,"liquidazioni":36,"loyalty":31,"loyalty_modelli":{"ASTRA":1,"CORSA":17,"CROSSLAND":0,"FRONTERA":8,"GRANDLAND":2,"MOKKA":3},"rental":0,"rifinanziamenti":2,"usato_finanziato":3,"vendite":{"km0":35,"nuovo":70}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":30},"immatricolazioni":{"km0":0,"nuovo":15},"leasing":1,"liquidazioni":17,"loyalty":11,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":30,"nuovo":20}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":58},"immatricolazioni":{"km0":0,"nuovo":125},"leasing":0,"liquidazioni":41,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":22,"nuovo":104}}},"fonte":"Excel, foglio Settembre 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-09"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":17},"immatricolazioni":{"km0":0,"nuovo":35},"leasing":0,"liquidazioni":18,"loyalty":8,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":7,"nuovo":39}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":48},"immatricolazioni":{"km0":0,"nuovo":22},"leasing":0,"liquidazioni":8,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":520}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":17},"immatricolazioni":{"km0":0,"nuovo":30},"leasing":0,"liquidazioni":9,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":32}},"opel":{"agos":{"km0":0,"nuovo":2,"usato":15},"captive":{"km0":0,"nuovo":36},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":125},"immatricolazioni":{"km0":0,"nuovo":124},"leasing":11,"liquidazioni":108,"loyalty":24,"loyalty_modelli":{"ASTRA":0,"CORSA":12,"CROSSLAND":0,"FRONTERA":1,"GRANDLAND":1,"MOKKA":10},"rental":4,"rifinanziamenti":2,"usato_finanziato":3,"vendite":{"km0":39,"nuovo":64}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":36},"immatricolazioni":{"km0":0,"nuovo":37},"leasing":0,"liquidazioni":24,"loyalty":18,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":19,"nuovo":30}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":48},"immatricolazioni":{"km0":0,"nuovo":96},"leasing":0,"liquidazioni":52,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":14,"nuovo":92}}},"fonte":"Excel, foglio Ottobre 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-10"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":26},"immatricolazioni":{"km0":0,"nuovo":61},"leasing":0,"liquidazioni":27,"loyalty":9,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":13,"nuovo":27}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":97},"immatricolazioni":{"km0":0,"nuovo":66},"leasing":0,"liquidazioni":9,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":598}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":13},"immatricolazioni":{"km0":0,"nuovo":18},"leasing":0,"liquidazioni":10,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":17}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":13},"captive":{"km0":0,"nuovo":17},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":46},"immatricolazioni":{"km0":0,"nuovo":95},"leasing":5,"liquidazioni":36,"loyalty":31,"loyalty_modelli":{"ASTRA":0,"CORSA":16,"CROSSLAND":0,"FRONTERA":8,"GRANDLAND":3,"MOKKA":4},"rental":1,"rifinanziamenti":2,"usato_finanziato":3,"vendite":{"km0":15,"nuovo":46}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":27},"immatricolazioni":{"km0":0,"nuovo":37},"leasing":5,"liquidazioni":24,"loyalty":12,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":12,"nuovo":20}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":32},"immatricolazioni":{"km0":0,"nuovo":65},"leasing":0,"liquidazioni":30,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":7,"nuovo":37}}},"fonte":"Excel, foglio Novembre 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-11"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":17},"immatricolazioni":{"km0":0,"nuovo":30},"leasing":0,"liquidazioni":15,"loyalty":10,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":13,"nuovo":30}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":63},"immatricolazioni":{"km0":0,"nuovo":104},"leasing":0,"liquidazioni":54,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":41}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":14},"immatricolazioni":{"km0":0,"nuovo":35},"leasing":0,"liquidazioni":12,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":34}},"opel":{"agos":{"km0":0,"nuovo":0,"usato":7},"captive":{"km0":0,"nuovo":26},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":35},"immatricolazioni":{"km0":0,"nuovo":77},"leasing":9,"liquidazioni":33,"loyalty":13,"loyalty_modelli":{"ASTRA":0,"CORSA":6,"CROSSLAND":1,"FRONTERA":1,"GRANDLAND":3,"MOKKA":5},"rental":0,"rifinanziamenti":4,"usato_finanziato":3,"vendite":{"km0":15,"nuovo":44}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":21},"immatricolazioni":{"km0":0,"nuovo":12},"leasing":4,"liquidazioni":18,"loyalty":7,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":12,"nuovo":20}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":34},"immatricolazioni":{"km0":0,"nuovo":71},"leasing":0,"liquidazioni":30,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":7,"nuovo":95}}},"fonte":"Excel, foglio Dicembre 2025","gruppo":{"usato":37,"vfg":9},"mese":"2025-12"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":29},"immatricolazioni":{"km0":12,"nuovo":44},"leasing":0,"liquidazioni":25,"loyalty":9,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":15,"nuovo":37}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":9},"immatricolazioni":{"km0":0,"nuovo":44},"leasing":0,"liquidazioni":22,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":24}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":13},"immatricolazioni":{"km0":5,"nuovo":30},"leasing":0,"liquidazioni":9,"loyalty":0,"rental":0,"vendite":{"km0":5,"nuovo":32}},"opel":{"agos":{"km0":0,"nuovo":3,"usato":13},"captive":{"km0":0,"nuovo":33},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":67},"immatricolazioni":{"km0":8,"nuovo":73},"leasing":6,"liquidazioni":40,"loyalty":45,"loyalty_modelli":{"ASTRA":0,"CORSA":32,"CROSSLAND":0,"FRONTERA":1,"GRANDLAND":4,"MOKKA":8},"rental":0,"rifinanziamenti":11,"usato_finanziato":3,"vendite":{"km0":34,"nuovo":84}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":35},"immatricolazioni":{"km0":11,"nuovo":37},"leasing":5,"liquidazioni":26,"loyalty":24,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":18,"nuovo":43}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":59},"immatricolazioni":{"km0":0,"nuovo":86},"leasing":0,"liquidazioni":35,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":28,"nuovo":119}}},"fonte":"Excel, foglio Gennaio 2026","gruppo":{"usato":37,"vfg":9},"mese":"2026-01"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":16},"immatricolazioni":{"km0":10,"nuovo":28},"leasing":0,"liquidazioni":0,"loyalty":9,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":20,"nuovo":36}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":10},"immatricolazioni":{"km0":0,"nuovo":104},"leasing":0,"liquidazioni":0,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":26}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":13},"immatricolazioni":{"km0":1,"nuovo":39},"leasing":0,"liquidazioni":0,"loyalty":0,"rental":0,"vendite":{"km0":5,"nuovo":29}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":2},"captive":{"km0":0,"nuovo":3},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":43},"immatricolazioni":{"km0":10,"nuovo":65},"leasing":0,"liquidazioni":0,"loyalty":45,"loyalty_modelli":{"ASTRA":0,"CORSA":32,"CROSSLAND":0,"FRONTERA":1,"GRANDLAND":4,"MOKKA":8},"rental":0,"rifinanziamenti":2,"usato_finanziato":3,"vendite":{"km0":15,"nuovo":83}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":28},"immatricolazioni":{"km0":16,"nuovo":30},"leasing":5,"liquidazioni":0,"loyalty":24,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":9,"nuovo":32}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":37},"immatricolazioni":{"km0":0,"nuovo":107},"leasing":0,"liquidazioni":0,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":15,"nuovo":91}}},"fonte":"Excel, foglio Febbraio 2026","gruppo":{"usato":37,"vfg":9},"mese":"2026-02"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":6,"sfs":17},"immatricolazioni":{"km0":10,"nuovo":47},"leasing":0,"liquidazioni":15,"loyalty":11,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":21,"nuovo":29}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":107},"immatricolazioni":{"km0":0,"nuovo":430},"leasing":0,"liquidazioni":144,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":19}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":15},"immatricolazioni":{"km0":1,"nuovo":44},"leasing":0,"liquidazioni":30,"loyalty":0,"rental":0,"vendite":{"km0":5,"nuovo":32}},"opel":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":3},"finanziamenti":{"agos_km0":12,"agos_nuovo":0,"ca_leasys":0,"sfs":54},"immatricolazioni":{"km0":10,"nuovo":72},"leasing":10,"liquidazioni":46,"loyalty":34,"loyalty_modelli":{"ASTRA":1,"CORSA":24,"CROSSLAND":0,"FRONTERA":2,"GRANDLAND":1,"MOKKA":5},"rental":0,"rifinanziamenti":8,"usato_finanziato":3,"vendite":{"km0":15,"nuovo":59}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":8,"sfs":17},"immatricolazioni":{"km0":16,"nuovo":15},"leasing":5,"liquidazioni":22,"loyalty":12,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":11,"nuovo":20}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":38},"immatricolazioni":{"km0":0,"nuovo":103},"leasing":0,"liquidazioni":35,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":8,"nuovo":85}}},"fonte":"Excel, foglio Marzo 2026","gruppo":{"usato":37,"vfg":9},"mese":"2026-03"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":2},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":27},"immatricolazioni":{"km0":10,"nuovo":45},"leasing":0,"liquidazioni":21,"loyalty":5,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":21,"nuovo":18}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":29},"immatricolazioni":{"km0":0,"nuovo":207},"leasing":0,"liquidazioni":91,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":20}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":17},"immatricolazioni":{"km0":1,"nuovo":31},"leasing":0,"liquidazioni":16,"loyalty":0,"rental":0,"vendite":{"km0":2,"nuovo":37}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":20},"captive":{"km0":0,"nuovo":24},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":43},"immatricolazioni":{"km0":10,"nuovo":51},"leasing":0,"liquidazioni":42,"loyalty":22,"loyalty_modelli":{"ASTRA":0,"CORSA":11,"CROSSLAND":0,"FRONTERA":3,"GRANDLAND":2,"MOKKA":6},"rental":0,"rifinanziamenti":2,"usato_finanziato":3,"vendite":{"km0":28,"nuovo":55}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":26},"immatricolazioni":{"km0":16,"nuovo":31},"leasing":5,"liquidazioni":19,"loyalty":13,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":6,"nuovo":23}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":29},"immatricolazioni":{"km0":0,"nuovo":63},"leasing":0,"liquidazioni":25,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":12,"nuovo":72}}},"fonte":"Excel, foglio Aprile 2026","gruppo":{"usato":37,"vfg":9},"mese":"2026-04"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":2},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":17},"immatricolazioni":{"km0":10,"nuovo":41},"leasing":0,"liquidazioni":19,"loyalty":10,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":9,"nuovo":23}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":17},"immatricolazioni":{"km0":0,"nuovo":24},"leasing":0,"liquidazioni":12,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":31}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":9},"immatricolazioni":{"km0":1,"nuovo":32},"leasing":0,"liquidazioni":14,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":25}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":20},"captive":{"km0":0,"nuovo":36},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":33},"immatricolazioni":{"km0":10,"nuovo":44},"leasing":0,"liquidazioni":31,"loyalty":17,"loyalty_modelli":{"ASTRA":0,"CORSA":9,"FRONTERA":4,"GRANDLAND":0,"MOKKA":2,"ZAFIRA":2},"rental":0,"rifinanziamenti":2,"usato_finanziato":3,"vendite":{"km0":14,"nuovo":51}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":20},"immatricolazioni":{"km0":16,"nuovo":32},"leasing":5,"liquidazioni":19,"loyalty":13,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":12,"nuovo":18}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":32},"immatricolazioni":{"km0":0,"nuovo":107},"leasing":0,"liquidazioni":28,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":5,"nuovo":69}}},"fonte":"Excel, foglio Maggio 2026","gruppo":{"usato":37,"vfg":9},"mese":"2026-05"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":2},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":13},"immatricolazioni":{"km0":10,"nuovo":16},"leasing":0,"liquidazioni":11,"loyalty":7,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":14,"nuovo":16}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":15},"immatricolazioni":{"km0":0,"nuovo":48},"leasing":0,"liquidazioni":25,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":22}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":11},"immatricolazioni":{"km0":1,"nuovo":28},"leasing":0,"liquidazioni":12,"loyalty":0,"rental":0,"vendite":{"km0":1,"nuovo":19}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":20},"captive":{"km0":0,"nuovo":53},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":40},"immatricolazioni":{"km0":10,"nuovo":50},"leasing":8,"liquidazioni":34,"loyalty":16,"loyalty_modelli":{"ASTRA":0,"CORSA":12,"CROSSLAND":0,"FRONTERA":2,"GRANDLAND":0,"MOKKA":2},"rental":2,"rifinanziamenti":9,"usato_finanziato":3,"vendite":{"km0":20,"nuovo":45}},"peugeot":{"agos":{"km0":0,"nuovo":1,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":23},"immatricolazioni":{"km0":16,"nuovo":13},"leasing":5,"liquidazioni":22,"loyalty":10,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":17,"nuovo":14}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":24},"immatricolazioni":{"km0":0,"nuovo":99},"leasing":0,"liquidazioni":39,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":21,"nuovo":62}}},"fonte":"Excel, foglio Giugno 2026","gruppo":{"usato":37,"vfg":9},"mese":"2026-06"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":2},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":20},"immatricolazioni":{"km0":10,"nuovo":23},"leasing":0,"liquidazioni":16,"loyalty":5,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":12,"nuovo":20}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":8},"immatricolazioni":{"km0":0,"nuovo":15},"leasing":0,"liquidazioni":6,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":24}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":13},"immatricolazioni":{"km0":1,"nuovo":20},"leasing":0,"liquidazioni":21,"loyalty":0,"rental":0,"vendite":{"km0":3,"nuovo":24}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":20},"captive":{"km0":0,"nuovo":46},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":27},"immatricolazioni":{"km0":10,"nuovo":43},"leasing":4,"liquidazioni":34,"loyalty":13,"loyalty_modelli":{"ASTRA":0,"CORSA":10,"CROSSLAND":0,"FRONTERA":1,"GRANDLAND":0,"MOKKA":2},"rental":0,"rifinanziamenti":17,"usato_finanziato":3,"vendite":{"km0":20,"nuovo":42}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"sfs":22},"immatricolazioni":{"km0":16,"nuovo":35},"leasing":5,"liquidazioni":16,"loyalty":10,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":22,"nuovo":22}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":36},"immatricolazioni":{"km0":0,"nuovo":88},"leasing":0,"liquidazioni":38,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":1,"nuovo":75}}},"fonte":"Excel, foglio Luglio 2026","gruppo":{"usato":37,"vfg":9},"mese":"2026-07"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":2},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":3,"sfs":12},"immatricolazioni":{"km0":10,"nuovo":6},"leasing":0,"liquidazioni":5,"loyalty":6,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":8,"nuovo":7}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":9},"immatricolazioni":{"km0":0,"nuovo":15},"leasing":0,"liquidazioni":17,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":29}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":12},"immatricolazioni":{"km0":1,"nuovo":12},"leasing":0,"liquidazioni":12,"loyalty":0,"rental":0,"vendite":{"km0":1,"nuovo":23}},"opel":{"agos":{"km0":0,"nuovo":0,"usato":12},"captive":{"km0":0,"nuovo":27},"finanziamenti":{"agos_km0":0,"agos_nuovo":0,"ca_leasys":0,"sfs":40},"immatricolazioni":{"km0":10,"nuovo":30},"leasing":5,"liquidazioni":39,"loyalty":14,"loyalty_modelli":{"ASTRA":0,"CORSA":7,"CROSSLAND":1,"FRONTERA":3,"GRANDLAND":0,"MOKKA":3},"rental":0,"rifinanziamenti":6,"usato_finanziato":3,"vendite":{"km0":8,"nuovo":46}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":0,"agos_nuovo":2,"sfs":7},"immatricolazioni":{"km0":16,"nuovo":7},"leasing":5,"liquidazioni":7,"loyalty":3,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":8,"nuovo":9}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":22},"immatricolazioni":{"km0":0,"nuovo":43},"leasing":0,"liquidazioni":19,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":0,"nuovo":49}}},"fonte":"Excel, foglio Agosto 2026","gruppo":{"usato":37,"vfg":9},"mese":"2026-08"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":2},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":1,"agos_nuovo":0,"sfs":12},"immatricolazioni":{"km0":17,"nuovo":7},"leasing":0,"liquidazioni":8,"loyalty":3,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":12,"nuovo":24}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":27},"immatricolazioni":{"km0":1,"nuovo":55},"leasing":0,"liquidazioni":14,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":64}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":13},"immatricolazioni":{"km0":4,"nuovo":31},"leasing":0,"liquidazioni":6,"loyalty":0,"rental":0,"vendite":{"km0":2,"nuovo":28}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":20},"captive":{"km0":0,"nuovo":26},"finanziamenti":{"agos_km0":2,"agos_nuovo":0,"ca_leasys":0,"sfs":40},"immatricolazioni":{"km0":10,"nuovo":71},"leasing":1,"liquidazioni":9,"loyalty":10,"loyalty_modelli":{"ASTRA":0,"CORSA":5,"CROSSLAND":0,"FRONTERA":3,"GRANDLAND":2,"MOKKA":2},"rental":2,"rifinanziamenti":6,"usato_finanziato":3,"vendite":{"km0":21,"nuovo":69}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":3,"agos_nuovo":0,"sfs":14},"immatricolazioni":{"km0":21,"nuovo":14},"leasing":1,"liquidazioni":12,"loyalty":3,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":22,"nuovo":20}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":31},"immatricolazioni":{"km0":0,"nuovo":123},"leasing":0,"liquidazioni":18,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":1,"nuovo":80}}},"fonte":"Excel, foglio Settembre 2026","gruppo":{"usato":37,"vfg":9},"mese":"2026-09"},{"aggiornato":"2026-10-26T12:00:00","brand":{"citroen":{"agos":{"km0":0,"nuovo":2},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":1,"agos_nuovo":0,"sfs":4},"immatricolazioni":{"km0":10,"nuovo":5},"leasing":0,"liquidazioni":8,"loyalty":3,"loyalty_modelli":{"C3":1},"rental":0,"vendite":{"km0":6,"nuovo":10}},"leapmotor":{"agos":{"km0":0,"nuovo":1},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":7},"immatricolazioni":{"km0":0,"nuovo":5},"leasing":0,"liquidazioni":14,"loyalty":0,"rental":0,"vendite":{"km0":0,"nuovo":10}},"mazda":{"agos":{"km0":1,"nuovo":0},"captive":{"km0":0,"nuovo":1},"finanziamenti":{"km0":0,"nuovo":4},"immatricolazioni":{"km0":1,"nuovo":10},"leasing":0,"liquidazioni":6,"loyalty":0,"rental":0,"vendite":{"km0":3,"nuovo":15}},"opel":{"agos":{"km0":0,"nuovo":1,"usato":20},"captive":{"km0":0,"nuovo":26},"finanziamenti":{"agos_km0":2,"agos_nuovo":0,"ca_leasys":0,"sfs":14},"immatricolazioni":{"km0":10,"nuovo":5},"leasing":1,"liquidazioni":9,"loyalty":10,"loyalty_modelli":{"ASTRA":0,"CORSA":5,"CROSSLAND":0,"FRONTERA":3,"GRANDLAND":2,"MOKKA":2},"rental":2,"rifinanziamenti":6,"usato_finanziato":3,"vendite":{"km0":20,"nuovo":10}},"peugeot":{"agos":{"km0":0,"nuovo":0,"usato":0},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"agos_km0":3,"agos_nuovo":0,"sfs":11},"immatricolazioni":{"km0":16,"nuovo":21},"leasing":1,"liquidazioni":12,"loyalty":3,"loyalty_modelli":{"5008":1},"rental":0,"usato_finanziato":3,"vendite":{"km0":1,"nuovo":11}},"suzuki":{"agos":{"km0":0,"nuovo":1,"usato":5},"captive":{"km0":0,"nuovo":0},"finanziamenti":{"km0":0,"nuovo":12},"immatricolazioni":{"km0":0,"nuovo":11},"leasing":0,"liquidazioni":18,"loyalty":0,"rental":0,"usato_finanziato":1,"vendite":{"km0":1,"nuovo":21}}},"fonte":"Excel, foglio Ottobre 2026","gruppo":{"usato":37,"vfg":9},"mese":"2026-10","nota":"Dati aggiornati al 26/10/2026","parziale":true}]};</script>
+<script>
+(function(){
+/* ---------- struttura del foglio ---------- */
+const MARCHI = [
+  {k:"opel", t:"Opel", stellantis:true, captive:"SFS/OFS", usato:"Usati SFS", agosUsato:true, rifin:true,
+   fin:[["sfs","SFS","nuovo","sfs"],["agos_nuovo","Agos nuovo","nuovo","agos_nuovo"],["agos_km0","Agos km 0","km0","agos_km0"],["ca_leasys","CA + Leasys","nuovo","ca_leasys"]],
+   modelli:["CORSA","MOKKA","CROSSLAND","ASTRA","GRANDLAND","FRONTERA"]},
+  {k:"peugeot", t:"Peugeot", stellantis:true, captive:"SFS/OFS", usato:"Usati", agosUsato:true, rifin:false,
+   fin:[["sfs","SFS","nuovo","sfs"],["agos_nuovo","Agos nuovo","nuovo","agos_nuovo"],["agos_km0","Agos km 0","km0","agos_km0"]], modelli:["5008"]},
+  {k:"citroen", t:"Citroën", stellantis:true, captive:"SFS/OFS", usato:null, agosUsato:false, rifin:false,
+   fin:[["sfs","SFS","nuovo","sfs"],["agos_nuovo","Agos nuovo","nuovo","agos_nuovo"],["agos_km0","Agos km 0","km0","agos_km0"]], modelli:["C3"]},
+  {k:"suzuki", t:"Suzuki", stellantis:false, captive:"Stellantis", usato:"Usato", agosUsato:true, rifin:false,
+   fin:[["nuovo","Nuovo","nuovo","marchio_nuovo"],["km0","Km 0","km0","marchio_km0"]], modelli:[]},
+  {k:"mazda", t:"Mazda", stellantis:false, captive:"Santander", usato:null, agosUsato:false, rifin:false,
+   fin:[["nuovo","Nuovo","nuovo","marchio_nuovo"],["km0","Km 0","km0","marchio_km0"]], modelli:[]},
+  {k:"leapmotor", t:"Leapmotor", stellantis:true, captive:"Santander", usato:null, agosUsato:false, rifin:false,
+   fin:[["nuovo","Nuovo","nuovo","marchio_nuovo"],["km0","Km 0","km0","marchio_km0"]], modelli:[]}
+];
+const MK = Object.fromEntries(MARCHI.map(m=>[m.k, m]));
+const PERIMETRI = [{k:"gruppo", t:"Gruppo", m:MARCHI.map(m=>m.k)}, {k:"stellantis", t:"Stellantis", m:MARCHI.filter(m=>m.stellantis).map(m=>m.k)}]
+  .concat(MARCHI.map(m=>({k:m.k, t:m.t, m:[m.k]})));
+const FIN_GRUPPO = [["sfs","SFS"],["agos_nuovo","Agos nuovo"],["agos_km0","Agos km 0"],["ca_leasys","CA + Leasys"],["marchio_nuovo","Finanziaria del marchio, nuovo"],["marchio_km0","Finanziaria del marchio, km 0"]];
+const MESI_IT = ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+
+/* ---------- aiuti ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const n = v => { const x = Number(v); return Number.isFinite(x) ? x : 0; };
+const migliaia = s => s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+const fmtDec = (v, d) => { const p = Math.abs(v).toFixed(d).split("."); return (v < 0 && Number(p.join(".")) !== 0 ? "-" : "") + migliaia(p[0]) + (d ? "," + p[1] : ""); };
+const fmt = v => v == null || !Number.isFinite(v) ? "—" : fmtDec(Math.round(v), 0);
+const fmtNum = v => Number.isInteger(v) ? fmt(v) : fmtDec(v, 1);
+const fmtP = v => v == null || !Number.isFinite(v) ? "—" : fmtDec(v, 1) + "%";
+const pct = (a, b) => b ? a / b * 100 : null;
+const kParts = k => k.split("-").map(Number);
+const mk = (y, m) => `${y}-${String(m).padStart(2,"0")}`;
+function shift(k, d){ const [y,m] = kParts(k); const t = y*12 + (m-1) + d; return mk(Math.floor(t/12), t%12 + 1); }
+const fmtMese = k => { const [y,m] = kParts(k); return `${MESI_IT[m-1]} ${y}`; };
+const fmtMeseBreve = k => { const [y,m] = kParts(k); return `${MESI_IT[m-1].slice(0,3)} ${String(y).slice(2)}`; };
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const get = (o, path) => path.split(".").reduce((x, p) => x == null ? undefined : x[p], o);
+function set(o, path, v){ const ps = path.split("."); let x = o; ps.slice(0,-1).forEach(p=>{ if (typeof x[p] !== "object" || x[p] === null) x[p] = {}; x = x[p]; }); x[ps[ps.length-1]] = v; }
+function selectBox(id, opzioni, label){ return `<div class="sel"><select id="${id}" class="t" aria-label="${esc(label)}">${opzioni}</select></div>`; }
+
+/* ---------- stato ---------- */
+const S = {docs:{}, mode:"loading", coll:null, owner:false};
+const V = {tab:"cruscotto", gran:"mese", periodo:null, perimetro:"gruppo"};
+const E = {mese:null, marchio:"opel", draft:null, conferma:false, salvataggio:false};
+let toastTimer = null;
+function toast(titolo, testo, err){
+  $("#toast-slot").innerHTML = `<div class="toast${err ? " err" : ""}" role="status"><div class="kicker">${err ? "Attenzione" : "Fatto"}</div><b>${esc(titolo)}</b><span>${esc(testo || "")}</span></div>`;
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ $("#toast-slot").innerHTML = ""; }, 3800);
+}
+
+/* ---------- aggregazione ---------- */
+function aggrega(keys, marchi){
+  const a = {v_n:0,v_k:0,i_n:0,i_k:0, fin:{}, finM:{}, fin_n:0, fin_k:0, usato:0, capt_n:0, capt_k:0, loy:0, modelli:{}, ag_n:0, ag_k:0, ag_u:0, leasing:0, rifin:0, rental:0, liq:0, g_usato:0, g_vfg:0, mesi:0, parziale:false};
+  const tutti = marchi.length === MARCHI.length;
+  keys.forEach(key=>{
+    const d = S.docs[key]; if (!d) return;
+    a.mesi++; if (d.parziale) a.parziale = true;
+    if (tutti){ a.g_usato += n(get(d, "gruppo.usato")); a.g_vfg += n(get(d, "gruppo.vfg")); }
+    marchi.forEach(k=>{
+      const b = (d.brand || {})[k] || {}, M = MK[k];
+      a.v_n += n(get(b,"vendite.nuovo")); a.v_k += n(get(b,"vendite.km0"));
+      a.i_n += n(get(b,"immatricolazioni.nuovo")); a.i_k += n(get(b,"immatricolazioni.km0"));
+      M.fin.forEach(([fk,,tipo,gk])=>{
+        const v = n(get(b, "finanziamenti." + fk));
+        a.fin[gk] = (a.fin[gk] || 0) + v; a.finM[fk] = (a.finM[fk] || 0) + v;
+        if (tipo === "nuovo") a.fin_n += v; else a.fin_k += v;
+      });
+      a.usato += n(b.usato_finanziato);
+      a.capt_n += n(get(b,"captive.nuovo")); a.capt_k += n(get(b,"captive.km0"));
+      a.loy += n(b.loyalty);
+      Object.entries(b.loyalty_modelli || {}).forEach(([mo, v])=>{ a.modelli[mo] = (a.modelli[mo] || 0) + n(v); });
+      a.ag_n += n(get(b,"agos.nuovo")); a.ag_k += n(get(b,"agos.km0")); a.ag_u += n(get(b,"agos.usato"));
+      a.leasing += n(b.leasing); a.rifin += n(b.rifinanziamenti); a.rental += n(b.rental); a.liq += n(b.liquidazioni);
+    });
+  });
+  a.v_t = a.v_n + a.v_k; a.i_t = a.i_n + a.i_k; a.fin_t = a.fin_n + a.fin_k;
+  a.capt_t = a.capt_n + a.capt_k; a.ag_t = a.ag_n + a.ag_k + a.ag_u;
+  a.pen = pct(a.fin_t, a.v_t); a.pen_n = pct(a.fin_n, a.v_n); a.pen_k = pct(a.fin_k, a.v_k);
+  a.liq_p = pct(a.liq, a.i_n);
+  return a;
+}
+
+/* ---------- periodi ---------- */
+function chiavi(){ return Object.keys(S.docs).sort(); }
+function periodi(gran){
+  const ks = chiavi(); if (!ks.length) return [];
+  const out = [];
+  if (gran === "mese") ks.slice().reverse().forEach(k=>out.push({id:k, label:fmtMese(k), keys:[k]}));
+  if (gran === "trimestre"){
+    const g = {};
+    ks.forEach(k=>{ const [y,m] = kParts(k); const q = Math.ceil(m/3); const id = `${y}-T${q}`; (g[id] = g[id] || {id, y, q, keys:[]}).keys.push(k); });
+    Object.values(g).sort((a,b)=> b.y - a.y || b.q - a.q).forEach(p=>out.push({id:p.id, label:`${p.q}° trimestre ${p.y}` + (p.keys.length < 3 ? ` (${p.keys.length} ${p.keys.length===1?"mese":"mesi"})` : ""), keys:p.keys}));
+  }
+  if (gran === "anno"){
+    const g = {};
+    ks.forEach(k=>{ const y = kParts(k)[0]; (g[y] = g[y] || []).push(k); });
+    Object.keys(g).sort().reverse().forEach(y=>{
+      const keys = g[y], primo = kParts(keys[0])[1], ultimo = kParts(keys[keys.length-1])[1];
+      out.push({id:String(y), label: keys.length === 12 ? String(y) : `${y} (${MESI_IT[primo-1].slice(0,3)}–${MESI_IT[ultimo-1].slice(0,3)})`, keys});
+    });
+  }
+  if (gran === "12m"){
+    const ultimo = ks[ks.length-1];
+    const keys = []; for (let i=11;i>=0;i--) keys.push(shift(ultimo, -i));
+    out.push({id:"12m", label:`${fmtMeseBreve(keys[0])} – ${fmtMeseBreve(ultimo)}`, keys:keys.filter(k=>S.docs[k])});
+  }
+  /* confronto con il periodo immediatamente precedente: il mese prima, il trimestre prima, l'anno prima, i 12 mesi prima */
+  const passo = {mese:1, trimestre:3, anno:12, "12m":12}[gran];
+  out.forEach(p=>{
+    p.cmp = p.keys.map(k=>shift(k, -passo)); p.cmpOk = p.cmp.every(k=>S.docs[k]);
+    p.cmpLabel = gran === "mese" ? fmtMeseBreve(p.cmp[0]) : {trimestre:"trimestre prima", anno:"anno prima", "12m":"12 mesi prima"}[gran];
+    p.cmpTesto = gran === "mese" ? fmtMese(p.cmp[0]) : {trimestre:"il trimestre precedente", anno:"l'anno precedente", "12m":"i 12 mesi precedenti"}[gran];
+  });
+  return out;
+}
+function periodoCorrente(){
+  const ps = periodi(V.gran);
+  if (!ps.length) return null;
+  if (!V.periodo || !ps.some(p=>p.id===V.periodo)) V.periodo = ps[0].id;
+  return {ps, P:ps.find(p=>p.id===V.periodo), per:PERIMETRI.find(x=>x.k===V.perimetro)};
+}
+
+/* ---------- cruscotto ---------- */
+function delta(cur, prev, punti, label, parziale){
+  if (parziale) return `<div class="kpi-d"><span class="v">n.d.</span>mese in corso</div>`;
+  if (prev == null || cur == null || !Number.isFinite(cur) || !Number.isFinite(prev)) return `<div class="kpi-d"><span class="v">n.d.</span>senza confronto</div>`;
+  const d = punti ? cur - prev : (prev ? (cur - prev) / prev * 100 : null);
+  if (d == null) return `<div class="kpi-d"><span class="v">n.d.</span></div>`;
+  const giu = d < -0.05, su = d > 0.05;
+  return `<div class="kpi-d"><span class="v${giu ? " down" : su ? " up" : ""}">${su ? "▲ +" : giu ? "▼ " : ""}${fmtDec(d, 1)}${punti ? " pt" : "%"}</span>vs ${esc(label)}</div>`;
+}
+function kpiCell(kick, valore, sotto, d){ return `<div class="kpi"><p class="kicker">${kick}</p><div class="kpi-v">${valore}</div><div class="kpi-s">${sotto}</div>${d}</div>`; }
+function scheletro(){
+  const k = `<div class="kpi"><div class="skel" style="width:40%"></div><div class="skel" style="height:34px;width:60%;margin-top:8px"></div><div class="skel" style="width:75%;margin-top:8px"></div></div>`;
+  return `<div class="kpis">${k}${k}${k}${k}</div><div class="charts"><div class="panel" style="height:300px;padding:22px"><div class="skel" style="height:100%"></div></div><div class="panel" style="height:300px;padding:22px"><div class="skel" style="height:100%"></div></div></div>`;
+}
+function vuoto(kick, titolo, testo, azione){ return `<div class="panel"><div class="empty"><p class="kicker">${esc(kick)}</p><h3>${esc(titolo)}</h3><p>${esc(testo)}</p>${azione || ""}</div></div>`; }
+
+function vistaCruscotto(){
+  const ks = chiavi();
+  if (S.mode === "loading") return scheletro();
+  if (S.mode === "assente") return vuoto("Dati", "Dati non disponibili qui", "I dati si vedono aprendo la pagina su claude.ai.");
+  if (!ks.length) return vuoto("Dati", "Nessun mese caricato", S.owner ? "Inizia inserendo il primo mese." : "Il proprietario non ha ancora inserito dati.", S.owner ? `<div><button class="btn primary t" id="vai-inserisci">Inserisci un mese</button></div>` : "");
+  const {ps, P, per} = periodoCorrente();
+  const a = aggrega(P.keys, per.m), c = P.cmpOk ? aggrega(P.cmp, per.m) : null;
+  const filtri = `<div class="filters">
+      <div class="fgroup"><span class="flabel">Periodo</span><div class="seg" role="group" aria-label="Tipo di periodo">${[["mese","Mese"],["trimestre","Trimestre"],["anno","Anno"],["12m","Ultimi 12 mesi"]].map(([k,t])=>`<button class="t" data-gran="${k}" aria-pressed="${V.gran===k}">${t}</button>`).join("")}</div></div>
+      <div class="fgroup"><span class="flabel">Quale</span>${ps.length > 1 ? selectBox("sel-periodo", ps.map(p=>`<option value="${p.id}"${p.id===V.periodo?" selected":""}>${esc(p.label)}</option>`).join(""), "Periodo") : `<span class="num" style="padding:7px 0">${esc(P.label)}</span>`}</div>
+      <div class="fgroup"><span class="flabel">Perimetro</span>${selectBox("sel-perimetro", PERIMETRI.map(x=>`<option value="${x.k}"${x.k===V.perimetro?" selected":""}>${x.t}</option>`).join(""), "Perimetro")}</div>
+      ${a.parziale ? `<span class="badge crit">Include un mese in corso</span>` : ""}
+    </div>`;
+  const lab = P.cmpOk ? P.cmpLabel : "";
+  const intro = `<div class="sec-head"><div><p class="kicker">${esc(per.t === "Gruppo" ? "Tutto il gruppo" : per.t)} · ${esc(P.label)}</p><h2>I numeri del periodo</h2></div></div>`;
+  const kpi = `<div class="kpis">
+      ${kpiCell("Contratti", fmt(a.v_t), `${fmt(a.v_n)} nuovo · ${fmt(a.v_k)} km 0`, delta(a.v_t, c && c.v_t, false, lab, a.parziale))}
+      ${kpiCell("Immatricolazioni", fmt(a.i_t), `${fmt(a.i_n)} nuovo · ${fmt(a.i_k)} km 0 / demo`, delta(a.i_t, c && c.i_t, false, lab, a.parziale))}
+      ${kpiCell("Finanziamenti", fmt(a.fin_t), `${fmt(a.fin_n)} nuovo · ${fmt(a.fin_k)} km 0`, delta(a.fin_t, c && c.fin_t, false, lab, a.parziale))}
+      ${kpiCell("Penetrazione", fmtP(a.pen), "finanziamenti su contratti", delta(a.pen, c && c.pen, true, lab))}
+    </div>${P.cmpOk ? "" : `<p class="note-band">Nessun confronto: manca il periodo precedente.</p>`}`;
+  const grafici = `<div class="charts">
+      <div class="panel"><div class="panel-h"><div><p class="kicker">Andamento</p><h3>Contratti per mese</h3><p class="sub">Ultimi 24 mesi, in pieno il periodo scelto</p></div><div class="legend"><span><i style="background:var(--oxford)"></i>Nuovo</span><span><i style="background:var(--amber)"></i>Km 0</span></div></div><div class="panel-b"><div class="chart" id="ch-contratti"></div><div class="tip" hidden></div></div></div>
+      <div class="panel"><div class="panel-h"><div><p class="kicker">Andamento</p><h3>Penetrazione finanziamenti</h3><p class="sub">Finanziamenti su contratti, mese per mese</p></div><div class="legend"><span><i class="line" style="background:var(--accent)"></i>Penetrazione</span></div></div><div class="panel-b"><div class="chart" id="ch-pen"></div><div class="tip" hidden></div></div></div>
+    </div>`;
+  return filtri + intro + kpi + grafici + (per.m.length > 1 ? tabellaMarchi(P, per) : "") + dettaglio(a, per);
+}
+
+function tabellaMarchi(P, per){
+  const tot = aggrega(P.keys, per.m), gr = aggrega(P.keys, MARCHI.map(m=>m.k));
+  const riga = (nome, a, cls, k) => `<tr class="${cls||""}"${k?` data-perimetro="${k}" tabindex="0"`:""}><td>${esc(nome)}</td><td>${fmt(a.v_n)}</td><td>${fmt(a.v_k)}</td><td>${fmt(a.v_t)}</td><td class="dim">${fmtP(pct(a.v_t, gr.v_t))}</td><td>${fmt(a.i_t)}</td><td>${fmt(a.fin_t)}</td><td>${fmtP(a.pen)}</td><td>${fmt(a.capt_t)}</td><td>${fmt(a.ag_t)}</td><td>${fmt(a.loy)}</td><td>${fmt(a.leasing)}</td><td>${fmt(a.rental)}</td><td>${fmt(a.liq)}</td><td class="dim">${fmtP(a.liq_p)}</td></tr>`;
+  return `<section style="display:grid;gap:14px"><div class="sec-head"><div><p class="kicker">Confronto</p><h2>Per marchio</h2><p class="sub">Clicca un marchio per aprirne il dettaglio</p></div></div>
+    <div class="tw"><table>
+    <thead><tr class="grp"><th></th><th colspan="4" style="text-align:center">Contratti</th><th></th><th colspan="2" style="text-align:center">Finanziamenti</th><th colspan="7"></th></tr>
+    <tr><th>Marchio</th><th>Nuovo</th><th>Km 0</th><th>Totale</th><th>Quota</th><th>Immatric.</th><th>Totale</th><th>Penetr.</th><th>Captive</th><th>Agos</th><th>Loyalty</th><th>Leasing</th><th>Rental</th><th>Liquidaz.</th><th>% immatric.</th></tr></thead>
+    <tbody>${per.m.map(k=>riga(MK[k].t, aggrega(P.keys, [k]), "click t", k)).join("")}${riga("Totale " + per.t.toLowerCase(), tot, "tot")}</tbody></table></div></section>`;
+}
+
+function righe(list){ return `<div class="kv">${list.map(([l, v, p, cls])=>`<div class="r${cls?" "+cls:""}"><span>${esc(l)}</span><span><b>${typeof v === "string" ? v : fmt(v)}</b>${p != null ? `<span class="p">${fmtP(p)}</span>` : ""}</span></div>`).join("")}</div>`; }
+
+function dettaglio(a, per){
+  const singolo = per.m.length === 1 ? MK[per.m[0]] : null;
+  const vt = a.v_t;
+  const finRighe = singolo
+    ? singolo.fin.map(([fk, lab])=>[lab, a.finM[fk] || 0, pct(a.finM[fk] || 0, vt)])
+    : FIN_GRUPPO.filter(([gk])=>per.m.some(k=>MK[k].fin.some(f=>f[3]===gk))).map(([gk, lab])=>[lab, a.fin[gk] || 0, pct(a.fin[gk] || 0, vt)]);
+  const usatoLab = singolo ? (singolo.usato || null) : "Usato finanziato";
+  const modelli = Object.entries(a.modelli).filter(([,v])=>v>0 || singolo).sort((x,y)=>y[1]-x[1]);
+  const blocchi = [
+    ["Vendite", "Contratti", "Nuovo e km 0", righe([["Nuovo", a.v_n], ["Km 0", a.v_k], ["Totale", a.v_t, null, "tot"]]), false],
+    ["Vendite", "Immatricolazioni", "Nuovo e km 0 / demo", righe([["Nuovo", a.i_n], ["Km 0 / demo", a.i_k], ["Totale", a.i_t, null, "tot"]]), false],
+    ["Credito", "Finanziamenti", "Per finanziaria, in percentuale sui contratti", righe(finRighe.concat([["Totale", a.fin_t, a.pen, "tot"], ["di cui nuovo", a.fin_n, a.pen_n], ["di cui km 0", a.fin_k, a.pen_k]])), true],
+    ["Credito", singolo ? `Captive · ${singolo.captive}` : "Captive", "Sui contratti e sui finanziamenti", righe([["Nuovo", a.capt_n], ["Km 0", a.capt_k], ["Totale", a.capt_t, pct(a.capt_t, vt), "tot"], ["Sui finanziamenti", fmtP(pct(a.capt_t, a.fin_t))]]), false],
+    ["Credito", "Agos", "Sui contratti e sui finanziamenti", righe([["Nuovo", a.ag_n], ["Km 0", a.ag_k]].concat((singolo ? singolo.agosUsato : true) ? [["Usato", a.ag_u]] : []).concat([["Totale", a.ag_t, pct(a.ag_t, vt), "tot"], ["Sui finanziamenti", fmtP(pct(a.ag_t, a.fin_t))]])), false],
+    ["Clienti", "Loyalty", "Totale e per modello, sui contratti", righe([["Totale", a.loy, pct(a.loy, vt), "tot"]].concat(modelli.map(([mo, v])=>[cap(mo.toLowerCase()), v]))), false],
+    ["Noleggio", "Leasing, rental e rifinanziamenti", "Pratiche nel periodo", righe([["Leasing", a.leasing], ["Rental", a.rental]].concat((singolo ? singolo.rifin : per.m.includes("opel")) ? [["Rifinanziamenti", a.rifin]] : [])), false],
+    ["Amministrazione", "Liquidazioni", "Sulle immatricolazioni del nuovo", righe([["Totale", a.liq, null, "tot"], ["Sulle immatricolazioni nuovo", fmtP(a.liq_p)]]), false]
+  ];
+  if (usatoLab) blocchi.splice(4, 0, ["Credito", usatoLab, "Pratiche di usato finanziate", righe([["Pratiche", a.usato]]), false]);
+  if (per.k === "gruppo") blocchi.push(["Gruppo", "Usato e VFG", "Totale finanziamenti del gruppo", righe([["Usato", a.g_usato], ["VFG", a.g_vfg], ["Totale con usato e VFG", a.fin_t + a.g_usato + a.g_vfg, null, "tot"]]), false]);
+  return `<section style="display:grid;gap:14px"><div class="sec-head"><div><p class="kicker">Approfondimento</p><h2>Dettaglio ${esc(per.t === "Gruppo" ? "del gruppo" : per.t)}</h2><p class="sub">Gli stessi blocchi del foglio mensile</p></div></div>
+    <div class="grid3">${blocchi.map(([k, t, sub, h, hl])=>`<div class="panel${hl ? " hl" : ""}"><div class="panel-h"><div><p class="kicker">${esc(k)}</p><h3>${esc(t)}</h3><p class="sub">${esc(sub)}</p></div></div>${h}</div>`).join("")}</div></section>`;
+}
+
+/* ---------- grafici ---------- */
+function serie(per){ return chiavi().slice(-24).map(k=>{ const a = aggrega([k], per.m); return {k, n:a.v_n, km:a.v_k, pen:a.pen, fin:a.fin_t, parz:!!S.docs[k].parziale}; }); }
+function scala(max){ const passi = [1,2,2.5,5,10]; const exp = Math.pow(10, Math.floor(Math.log10(Math.max(max,1)))); for (const p of passi){ const s = p*exp; if (s*4 >= max) return {step:s, max:s*4}; } return {step:exp*10, max:exp*40}; }
+const AX = `font-family="JetBrains Mono, monospace" font-size="10.5" fill="#78716C"`;
+function graficoContratti(dati, sel){
+  const W = 640, H = 240, L = 42, R = 4, T = 12, B = 26, w = W-L-R, h = H-T-B;
+  const sc = scala(Math.max(...dati.map(d=>d.n + d.km), 1));
+  const bw = w / dati.length, gap = Math.min(6, bw*0.3);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Contratti per mese, nuovo e km 0">`;
+  for (let i=0;i<=4;i++){ const y = T + h - h*i/4; s += `<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="${i ? "#E7E5E4" : "#141413"}" stroke-width="1"/><text x="${L-8}" y="${y+4}" text-anchor="end" ${AX}>${fmtNum(sc.step*i)}</text>`; }
+  dati.forEach((d, i)=>{
+    const x = L + i*bw + gap/2, bwi = Math.max(2, bw - gap);
+    const hn = h * d.n / sc.max, hk = h * d.km / sc.max, on = sel.has(d.k);
+    const yN = T + h - hn, yK = yN - hk - (hk > 0 && hn > 0 ? 1.5 : 0);
+    s += `<g class="bar${on ? " on" : ""}" data-i="${i}" opacity="${on ? 1 : .35}">`;
+    if (hn > 0) s += `<rect x="${x}" y="${yN}" width="${bwi}" height="${hn}" fill="#1E3A5F"/>`;
+    if (hk > 0) s += `<rect x="${x}" y="${yK}" width="${bwi}" height="${hk}" fill="#B45309"/>`;
+    if (d.parz) s += `<text x="${x+bwi/2}" y="${yK-5}" text-anchor="middle" ${AX}>parz.</text>`;
+    s += `</g>`;
+    if (i % 3 === (dati.length-1) % 3) s += `<text x="${x+bwi/2}" y="${H-6}" text-anchor="middle" ${AX}>${fmtMeseBreve(d.k)}</text>`;
+    s += `<rect class="hit" data-i="${i}" x="${L + i*bw}" y="${T}" width="${bw}" height="${h}" fill="transparent"/>`;
+  });
+  return s + `</svg>`;
+}
+function graficoPen(dati, sel){
+  const W = 520, H = 240, L = 46, R = 8, T = 14, B = 26, w = W-L-R, h = H-T-B;
+  const vals = dati.map(d=>d.pen).filter(v=>v != null);
+  const sc = scala(Math.max(...vals, 10));
+  const x = i => L + (dati.length === 1 ? w/2 : w * i / (dati.length-1));
+  const y = v => T + h - h * v / sc.max;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Penetrazione dei finanziamenti per mese">`;
+  for (let i=0;i<=4;i++){ const yy = T + h - h*i/4; s += `<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="${i ? "#E7E5E4" : "#141413"}" stroke-width="1"/><text x="${L-8}" y="${yy+4}" text-anchor="end" ${AX}>${fmtNum(sc.step*i)}%</text>`; }
+  let path = "";
+  dati.forEach((d, i)=>{ if (d.pen == null) return; path += (path ? " L" : "M") + `${x(i).toFixed(1)},${y(d.pen).toFixed(1)}`; });
+  if (path) s += `<path d="${path}" fill="none" stroke="#0B5D3B" stroke-width="2"/>`;
+  dati.forEach((d, i)=>{
+    if (d.pen != null){ const on = sel.has(d.k); s += `<rect x="${(x(i) - (on ? 4 : 3)).toFixed(1)}" y="${(y(d.pen) - (on ? 4 : 3)).toFixed(1)}" width="${on ? 8 : 6}" height="${on ? 8 : 6}" fill="${on ? "#0B5D3B" : "#FFFFFF"}" stroke="#0B5D3B" stroke-width="1.5"/>`; }
+    if (i % 3 === (dati.length-1) % 3) s += `<text x="${x(i).toFixed(1)}" y="${H-6}" text-anchor="middle" ${AX}>${fmtMeseBreve(d.k)}</text>`;
+    const bw = dati.length > 1 ? w/(dati.length-1) : w;
+    s += `<rect class="hit" data-i="${i}" x="${(x(i)-bw/2).toFixed(1)}" y="${T}" width="${bw.toFixed(1)}" height="${h}" fill="transparent"/>`;
+  });
+  return s + `</svg>`;
+}
+function disegnaGrafici(){
+  const c1 = $("#ch-contratti"), c2 = $("#ch-pen"); if (!c1 || !c2) return;
+  const cur = periodoCorrente(); if (!cur) return;
+  const dati = serie(cur.per), sel = new Set(cur.P.keys);
+  c1.innerHTML = graficoContratti(dati, sel); c2.innerHTML = graficoPen(dati, sel);
+  const tipC = d => `<div class="k">${esc(fmtMese(d.k))}${d.parz ? " · parziale" : ""}</div><div class="row"><span><span class="sw" style="background:#1E3A5F"></span>Nuovo</span><span>${fmt(d.n)}</span></div><div class="row"><span><span class="sw" style="background:#B45309"></span>Km 0</span><span>${fmt(d.km)}</span></div><div class="row"><span>Totale</span><span>${fmt(d.n + d.km)}</span></div>`;
+  const tipP = d => `<div class="k">${esc(fmtMese(d.k))}${d.parz ? " · parziale" : ""}</div><div class="row"><span>Penetrazione</span><span>${fmtP(d.pen)}</span></div><div class="row"><span>Finanziamenti</span><span>${fmt(d.fin)}</span></div><div class="row"><span>Contratti</span><span>${fmt(d.n + d.km)}</span></div>`;
+  [[c1, tipC], [c2, tipP]].forEach(([c, testo])=>{
+    const tip = c.parentElement.querySelector(".tip");
+    if (!c.addEventListener) return;
+    c.addEventListener("pointermove", e=>{
+      const hit = e.target.closest && e.target.closest(".hit");
+      if (!hit){ tip.hidden = true; c.classList.remove("hovering"); return; }
+      const i = Number(hit.getAttribute("data-i")), d = dati[i]; if (!d) return;
+      if (c === c1){ c.classList.add("hovering"); c.querySelectorAll(".bar").forEach(g=>g.classList.toggle("on", Number(g.getAttribute("data-i")) === i)); }
+      tip.innerHTML = testo(d); tip.hidden = false;
+      const box = c.parentElement.getBoundingClientRect();
+      let px = e.clientX - box.left + 14; if (px + 180 > box.width) px = e.clientX - box.left - 194;
+      tip.style.left = Math.max(8, px) + "px"; tip.style.top = Math.max(8, e.clientY - box.top - 60) + "px";
+    });
+    c.addEventListener("pointerleave", ()=>{ tip.hidden = true; c.classList.remove("hovering"); if (c === c1) c.querySelectorAll(".bar").forEach(g=>g.classList.toggle("on", sel.has(dati[Number(g.getAttribute("data-i"))].k))); });
+  });
+}
+
+/* ---------- inserimento ---------- */
+function blocchiMarchio(M, d){
+  const modelli = Array.from(new Set(M.modelli.concat(Object.keys(get(d, `brand.${M.k}.loyalty_modelli`) || {}))));
+  return [
+    {k:"Vendite", t:"Contratti", c:[["vendite.nuovo","Nuovo"],["vendite.km0","Km 0"]], sum:"tot"},
+    {k:"Vendite", t:"Immatricolazioni", c:[["immatricolazioni.nuovo","Nuovo"],["immatricolazioni.km0","Km 0 / demo"]], sum:"tot"},
+    {k:"Credito", t:"Finanziamenti", c:M.fin.map(([fk, lab])=>["finanziamenti." + fk, lab]), sum:"fin"},
+    M.usato ? {k:"Credito", t:M.usato, c:[["usato_finanziato","Pratiche"]]} : null,
+    {k:"Credito", t:`Captive · ${M.captive}`, c:[["captive.nuovo","Nuovo"],["captive.km0","Km 0"]], sum:"capt"},
+    {k:"Clienti", t:"Loyalty", c:[["loyalty","Totale"]].concat(modelli.map(mo=>["loyalty_modelli." + mo, cap(mo.toLowerCase())])), addModel:true},
+    {k:"Credito", t:"Agos", c:[["agos.nuovo","Nuovo"],["agos.km0","Km 0"]].concat(M.agosUsato ? [["agos.usato","Usato"]] : []), sum:"agos"},
+    {k:"Noleggio", t:"Leasing, rental e rifinanziamenti", c:[["leasing","Leasing"],["rental","Rental"]].concat(M.rifin ? [["rifinanziamenti","Rifinanziamenti"]] : [])},
+    {k:"Amministrazione", t:"Liquidazioni", c:[["liquidazioni","Totale"]], sum:"liq"}
+  ].filter(Boolean);
+}
+function nuovoDraft(mese){
+  const d = S.docs[mese] ? JSON.parse(JSON.stringify(S.docs[mese])) : {mese, brand:{}, gruppo:{usato:0, vfg:0}};
+  MARCHI.forEach(M=>{ if (!d.brand[M.k]) d.brand[M.k] = {}; });
+  if (!d.gruppo) d.gruppo = {usato:0, vfg:0};
+  return d;
+}
+function meseDefault(){
+  const ks = chiavi(); if (!ks.length){ const t = new Date(); return mk(t.getFullYear(), t.getMonth()+1); }
+  const ult = ks[ks.length-1];
+  return S.docs[ult].parziale ? ult : shift(ult, 1);
+}
+function caricaDraft(mese){
+  E.mese = mese; E.conferma = false;
+  let bozza = null;
+  try { bozza = JSON.parse(localStorage.getItem("mensile-bozza-" + mese) || "null"); } catch(e){}
+  E.draft = bozza && bozza.mese === mese ? bozza : nuovoDraft(mese);
+  E.daBozza = !!(bozza && bozza.mese === mese);
+}
+function salvaBozza(){ try { localStorage.setItem("mensile-bozza-" + E.mese, JSON.stringify(E.draft)); } catch(e){} }
+function scartaBozza(){ try { localStorage.removeItem("mensile-bozza-" + E.mese); } catch(e){} }
+const sommaFin = b => Object.values(b.finanziamenti || {}).reduce((s,v)=>s+n(v),0);
+const contrattiMarchio = b => n(get(b,"vendite.nuovo")) + n(get(b,"vendite.km0"));
+function riepilogo(blocco, b){
+  const v_t = contrattiMarchio(b);
+  if (blocco.sum === "tot"){ const t = blocco.c.reduce((s,[p])=>s + n(get(b, p)), 0); return `Totale <b>${fmt(t)}</b>`; }
+  if (blocco.sum === "fin"){ const t = sommaFin(b); return `Totale <b>${fmt(t)}</b>, pari al <b>${fmtP(pct(t, v_t))}</b> dei contratti`; }
+  if (blocco.sum === "capt"){ const t = n(get(b,"captive.nuovo")) + n(get(b,"captive.km0")); return `Totale <b>${fmt(t)}</b>: <b>${fmtP(pct(t, v_t))}</b> dei contratti, <b>${fmtP(pct(t, sommaFin(b)))}</b> dei finanziamenti`; }
+  if (blocco.sum === "agos"){ const t = n(get(b,"agos.nuovo")) + n(get(b,"agos.km0")) + n(get(b,"agos.usato")); return `Totale <b>${fmt(t)}</b>, pari al <b>${fmtP(pct(t, v_t))}</b> dei contratti`; }
+  if (blocco.sum === "liq") return `<b>${fmtP(pct(n(b.liquidazioni), n(get(b,"immatricolazioni.nuovo"))))}</b> delle immatricolazioni del nuovo`;
+  return "";
+}
+function vistaInserisci(){
+  if (S.mode === "loading") return scheletro();
+  if (S.mode === "assente") return vuoto("Inserimento", "Inserimento non disponibile qui", "L'inserimento funziona aprendo la pagina su claude.ai.");
+  if (!S.owner) return vuoto("Inserimento", "Solo lettura", "Solo il proprietario della pagina può inserire o modificare i mesi.");
+  if (!E.mese) caricaDraft(meseDefault());
+  const [y, m] = kParts(E.mese), esiste = !!S.docs[E.mese];
+  const anni = []; const oggi = new Date(); for (let a = 2024; a <= oggi.getFullYear() + 1; a++) anni.push(a);
+  const d = E.draft;
+  const nav = `<nav class="enav" aria-label="Marchio da compilare">${MARCHI.map(M=>{ const cc = contrattiMarchio(d.brand[M.k] || {}); return `<button class="navitem t${cc > 0 ? " done" : ""}" data-emarchio="${M.k}" aria-pressed="${E.marchio===M.k}"><span><span class="mark">${cc > 0 ? "●" : "○"}</span>${M.t}</span><span class="meta" data-meta="${M.k}">${cc > 0 ? fmt(cc) + " contr." : "da compilare"}</span></button>`; }).join("")}<button class="navitem t" data-emarchio="gruppo" aria-pressed="${E.marchio==="gruppo"}"><span><span class="mark">§</span>Gruppo e stato</span><span class="meta"></span></button></nav>`;
+  let corpo;
+  if (E.marchio === "gruppo"){
+    corpo = `<div class="form-grid">
+      <div class="panel"><div class="panel-h"><div><p class="kicker">Gruppo</p><h3>Usato e VFG</h3><p class="sub">Valori complessivi del gruppo</p></div></div><div class="fields" style="padding-bottom:22px">
+        <div class="field"><label for="f-gruppo-usato">Usato</label><input class="inp t" id="f-gruppo-usato" data-path="gruppo.usato" type="number" min="0" step="1" inputmode="numeric" placeholder="0" value="${esc(get(d,"gruppo.usato") ?? "")}"></div>
+        <div class="field"><label for="f-gruppo-vfg">VFG</label><input class="inp t" id="f-gruppo-vfg" data-path="gruppo.vfg" type="number" min="0" step="1" inputmode="numeric" placeholder="0" value="${esc(get(d,"gruppo.vfg") ?? "")}"></div>
+      </div></div>
+      <div class="panel"><div class="panel-h"><div><p class="kicker">Stato</p><h3>Mese in corso</h3><p class="sub">Un mese aperto non viene confrontato con il mese prima</p></div></div>
+        <label class="check"><input type="checkbox" id="f-parziale"${d.parziale?" checked":""}> Dati parziali, il mese non è chiuso</label>
+        <div class="fields" style="grid-template-columns:1fr;padding-bottom:22px"><div class="field"><label for="f-nota">Nota</label><input class="inp t" id="f-nota" type="text" maxlength="120" value="${esc(d.nota || "")}" placeholder="Per esempio: dati aggiornati al 15/11"></div></div></div>
+    </div>`;
+  } else {
+    const M = MK[E.marchio], b = d.brand[M.k];
+    corpo = `<div class="form-grid">${blocchiMarchio(M, d).map((bl, bi)=>`<div class="panel"><div class="panel-h"><div><p class="kicker">${esc(bl.k)}</p><h3>${esc(bl.t)}</h3></div></div>
+      <div class="fields">${bl.c.map(([p, lab])=>{ const id = `f-${M.k}-${p.replace(/[^a-z0-9]/gi,"-")}`; const v = get(b, p); return `<div class="field"><label for="${id}">${esc(lab)}</label><input class="inp t" id="${id}" data-path="brand.${M.k}.${p}" type="number" min="0" step="1" inputmode="numeric" placeholder="0" value="${v == null ? "" : esc(v)}"></div>`; }).join("")}</div>
+      ${bl.addModel ? `<div class="addm"><input class="inp t" id="nuovo-modello" type="text" maxlength="20" placeholder="Altro modello" style="max-width:170px"><button class="btn t" id="aggiungi-modello" type="button">Aggiungi</button></div>` : ""}
+      ${bl.sum ? `<div class="sum" data-sum="${bi}">${riepilogo(bl, b)}</div>` : `<div style="height:20px"></div>`}</div>`).join("")}</div>`;
+  }
+  const top = `<div class="etop">
+      <div class="fgroup"><span class="flabel">Mese</span>${selectBox("e-mese", MESI_IT.map((t,i)=>`<option value="${i+1}"${i+1===m?" selected":""}>${cap(t)}</option>`).join(""), "Mese")}</div>
+      <div class="fgroup"><span class="flabel">Anno</span>${selectBox("e-anno", anni.map(a=>`<option${a===y?" selected":""}>${a}</option>`).join(""), "Anno")}</div>
+      <span class="badge${esiste ? " crit" : ""}">${esiste ? `Già inserito${S.docs[E.mese].parziale ? ", parziale" : ""}: stai modificando` : "Mese nuovo"}</span>
+      ${E.daBozza ? `<span class="badge">Bozza non salvata ripresa</span>` : ""}
+    </div>`;
+  const barra = `<div class="actionbar">
+      <span class="left">Si salvano tutti i marchi insieme; i campi vuoti valgono zero.</span>
+      <div class="right">
+        ${esiste ? `<button class="btn danger t${E.conferma?" confirm":""}" id="elimina">${E.conferma ? "Conferma eliminazione" : "Elimina"}</button>` : ""}
+        <button class="btn t" id="svuota">Annulla modifiche</button>
+        <button class="btn primary t" id="salva" ${E.salvataggio?"disabled":""}>${E.salvataggio ? "Salvataggio…" : "Salva " + fmtMese(E.mese)}</button>
+      </div></div>`;
+  return `<div class="sec-head"><div><p class="kicker">Inserimento</p><h2>${esc(cap(fmtMese(E.mese)))}</h2><p class="sub">Gli stessi campi del foglio mensile, marchio per marchio</p></div></div>` + top + `<div class="entry">${nav}<div style="display:grid;gap:24px;min-width:0">${corpo}</div></div>` + barra;
+}
+function aggiornaRiepiloghi(){
+  if (E.marchio === "gruppo") return;
+  const M = MK[E.marchio], b = E.draft.brand[M.k], bl = blocchiMarchio(M, E.draft);
+  document.querySelectorAll("[data-sum]").forEach(el=>{ const blocco = bl[Number(el.getAttribute("data-sum"))]; if (blocco) el.innerHTML = riepilogo(blocco, b); });
+  const cc = contrattiMarchio(b), meta = document.querySelector(`[data-meta="${M.k}"]`);
+  if (meta) meta.textContent = cc > 0 ? fmt(cc) + " contr." : "da compilare";
+  const nb = document.querySelector(`[data-emarchio="${M.k}"]`);
+  if (nb){ nb.classList.toggle("done", cc > 0); const mark = nb.querySelector(".mark"); if (mark) mark.textContent = cc > 0 ? "●" : "○"; }
+}
+function pulisci(d){
+  const out = {mese:E.mese, brand:{}, gruppo:{usato:n(get(d,"gruppo.usato")), vfg:n(get(d,"gruppo.vfg"))}, fonte:"Inserimento manuale", aggiornato:new Date().toISOString()};
+  if (d.parziale) out.parziale = true;
+  if (d.nota) out.nota = String(d.nota).slice(0, 120);
+  MARCHI.forEach(M=>{
+    const b = d.brand[M.k] || {}, o = {};
+    blocchiMarchio(M, d).forEach(bl=>bl.c.forEach(([p])=>set(o, p, Math.max(0, Math.round(n(get(b, p)))))));
+    out.brand[M.k] = o;
+  });
+  return out;
+}
+async function salva(){
+  if (!S.coll){ toast("Salvataggio non disponibile", "Apri la pagina su claude.ai per salvare.", true); return; }
+  E.salvataggio = true; render();
+  try {
+    await S.coll.doc(E.mese).set(pulisci(E.draft));
+    scartaBozza(); E.daBozza = false;
+    toast(`${cap(fmtMese(E.mese))} salvato`, "Il cruscotto è già aggiornato.");
+  } catch(e){
+    toast("Salvataggio non riuscito", e && e.code === "invalid_argument" ? "Solo il proprietario può salvare." : "Riprova tra qualche istante.", true);
+  }
+  E.salvataggio = false; render();
+}
+
+/* ---------- report PDF (stile editoriale: Times per titoli e numeri, Courier per kicker e tabelle) ---------- */
+const PDFC = {paper:"#FAF8F5", card:"#FFFFFF", deep:"#F2EFE9", ink:"#141413", ink2:"#57534E", meta:"#78716C", s200:"#E7E5E4", s800:"#292524", accent:"#0B5D3B", oxford:"#1E3A5F", amber:"#B45309"};
+function variazione(cur, prev, punti){
+  if (prev == null || cur == null || !Number.isFinite(cur) || !Number.isFinite(prev)) return null;
+  if (punti) return cur - prev;
+  return prev ? (cur - prev) / prev * 100 : null;
+}
+const fmtVar = (d, punti) => d == null ? "n.d." : `${d > 0 ? "+" : d < 0 ? "-" : ""}${fmtDec(Math.abs(d), 1)}${punti ? " pt" : "%"}`;
+function puntiChiave(P, per, a, c){
+  const out = [];
+  const vsTxt = P.cmpOk ? ` rispetto ${/^a/i.test(P.cmpTesto) ? "ad" : "a"} ${P.cmpTesto}` : "";
+  const dv = c && !a.parziale ? variazione(a.v_t, c.v_t) : null;
+  out.push(`${fmt(a.v_t)} contratti (${fmt(a.v_n)} nuovo, ${fmt(a.v_k)} km 0)${dv != null ? `, ${fmtVar(dv)}${vsTxt}` : ""}.`);
+  const dp = c ? variazione(a.pen, c.pen, true) : null;
+  out.push(`Penetrazione dei finanziamenti al ${fmtP(a.pen)}${dp != null ? ` (${fmtVar(dp, true)})` : ""}: ${fmt(a.fin_t)} finanziamenti, di cui ${fmt(a.capt_t)} captive.`);
+  if (per.m.length > 1){
+    const rr = per.m.map(k=>({k, a:aggrega(P.keys, [k])})).filter(r=>r.a.v_t >= 10 && r.a.pen != null);
+    if (rr.length >= 2){ rr.sort((x,y)=>y.a.pen - x.a.pen); const hi = rr[0], lo = rr[rr.length-1]; out.push(`Penetrazione più alta: ${MK[hi.k].t} al ${fmtP(hi.a.pen)}; più bassa: ${MK[lo.k].t} al ${fmtP(lo.a.pen)} (marchi con almeno 10 contratti).`); }
+    const peso = per.m.map(k=>({k, v:aggrega(P.keys, [k]).v_t})).sort((x,y)=>y.v - x.v)[0];
+    if (peso && a.v_t) out.push(`${MK[peso.k].t} è il primo marchio per contratti: ${fmtP(pct(peso.v, a.v_t))} del totale.`);
+  }
+  out.push(`Liquidazioni: ${fmt(a.liq)}, pari al ${fmtP(a.liq_p)} delle immatricolazioni del nuovo.`);
+  return out;
+}
+function costruisciPDF(jsPDF, P, per, a, c){
+  const doc = new jsPDF({unit:"mm", format:"a4", orientation:"portrait"});
+  const M = 16, W = 210, H = 297, CW = W - 2*M;
+  const T = (s, x, y, font, stile, size, colore, opt) => { doc.setFont(font, stile); doc.setFontSize(size); doc.setTextColor(colore); doc.text(Array.isArray(s) ? s : String(s), x, y, opt || {}); };
+  const pannello = (x, y, w, h, accento) => { doc.setFillColor(PDFC.card); doc.rect(x, y, w, h, "F"); doc.setDrawColor(PDFC.s200); doc.setLineWidth(0.25); doc.rect(x, y, w, h, "S"); doc.setDrawColor(accento || PDFC.ink); doc.setLineWidth(0.7); doc.line(x, y, x + w, y); };
+  doc.setFillColor(PDFC.paper); doc.rect(0, 0, W, H, "F");
+  let y = 16;
+  T("GRUPPO AUTOIMPORT · REPORT DIREZIONALE", M, y, "courier", "bold", 7.5, PDFC.meta);
+  T(`GENERATO IL ${new Date().toLocaleDateString("it-IT", {day:"numeric", month:"long", year:"numeric"}).toUpperCase()}`, W - M, y, "courier", "bold", 7.5, PDFC.meta, {align:"right"});
+  y += 3; doc.setDrawColor(PDFC.ink); doc.setLineWidth(0.7); doc.line(M, y, W - M, y);
+  y += 11; T("Report Finanziamenti", M, y, "times", "bold", 26, PDFC.ink);
+  y += 7; T(`${per.t === "Gruppo" ? "Tutti i marchi" : per.t}, ${P.label}${P.cmpOk ? `, a confronto con ${P.cmpTesto}` : ", senza confronto disponibile"}.`, M, y, "times", "italic", 12, PDFC.ink2);
+  y += 7;
+  if (a.parziale){ T("MESE IN CORSO · I CONTEGGI SONO PARZIALI E NON VENGONO CONFRONTATI CON L'ANNO PRIMA", M, y, "courier", "bold", 7, PDFC.accent); y += 5; }
+  const cc = a.parziale ? null : c;
+  const kpi = [
+    ["CONTRATTI", fmt(a.v_t), `${fmt(a.v_n)} nuovo · ${fmt(a.v_k)} km 0`, cc ? variazione(a.v_t, cc.v_t) : null, false],
+    ["IMMATRICOLAZIONI", fmt(a.i_t), `${fmt(a.i_n)} nuovo · ${fmt(a.i_k)} km 0`, cc ? variazione(a.i_t, cc.i_t) : null, false],
+    ["FINANZIAMENTI", fmt(a.fin_t), `${fmt(a.fin_n)} nuovo · ${fmt(a.fin_k)} km 0`, cc ? variazione(a.fin_t, cc.fin_t) : null, false],
+    ["PENETRAZIONE", fmtP(a.pen), "finanziamenti su contratti", c ? variazione(a.pen, c.pen, true) : null, true]
+  ];
+  const kh = 31, kw = CW / 4;
+  pannello(M, y, CW, kh);
+  kpi.forEach(([lab, val, sub, d, punti], i)=>{
+    const x = M + i*kw;
+    if (i){ doc.setDrawColor(PDFC.s200); doc.setLineWidth(0.25); doc.line(x, y + 3, x, y + kh - 3); }
+    T(lab, x + 4.5, y + 6.5, "courier", "bold", 7, PDFC.accent);
+    T(val, x + 4.5, y + 17, "times", "bold", 24, PDFC.ink);
+    T(sub, x + 4.5, y + 22, "helvetica", "normal", 7, PDFC.ink2);
+    const testoD = d == null ? (a.parziale && !punti ? "mese in corso" : "nessun confronto") : `${d > 0.05 ? "+" : ""}${fmtVar(d, punti).replace(/^\+/, "")} vs ${P.cmpLabel}`;
+    T(testoD, x + 4.5, y + 27.5, "courier", "bold", 7, d != null && d > 0.05 ? PDFC.accent : PDFC.ink2);
+  });
+  y += kh + 10;
+  T("ANDAMENTO", M, y, "courier", "bold", 7, PDFC.accent); y += 5;
+  T("Gli ultimi 12 mesi", M, y, "times", "bold", 14, PDFC.ink); y += 3;
+  const fine = P.keys[P.keys.length - 1];
+  const mesi12 = []; for (let i=11;i>=0;i--) mesi12.push(shift(fine, -i));
+  const dati = mesi12.map(k=>{ const x = S.docs[k] ? aggrega([k], per.m) : null; return {k, n:x ? x.v_n : 0, km:x ? x.v_k : 0, pen:x ? x.pen : null}; });
+  const sel = new Set(P.keys);
+  const cw = (CW - 6) / 2, chh = 58, cy = y + 2;
+  const box = (x0, titolo) => { pannello(x0, cy, cw, chh); T(titolo, x0 + 4, cy + 6.5, "times", "bold", 10, PDFC.ink); };
+  box(M, "Contratti per mese");
+  T("NUOVO", M + cw - 26, cy + 6.5, "courier", "bold", 6, PDFC.oxford); T("KM 0", M + cw - 10, cy + 6.5, "courier", "bold", 6, PDFC.amber);
+  const gx = M + 12, gy = cy + 11, gw = cw - 16, gh = chh - 20;
+  const sc1 = scala(Math.max(1, ...dati.map(d=>d.n + d.km)));
+  for (let i=0;i<=4;i++){ const yy = gy + gh - gh*i/4; doc.setDrawColor(i ? PDFC.s200 : PDFC.ink); doc.setLineWidth(i ? 0.15 : 0.3); doc.line(gx, yy, gx + gw, yy); T(fmtNum(sc1.step*i), gx - 1.5, yy + 1, "courier", "normal", 5.8, PDFC.meta, {align:"right"}); }
+  const bw = gw / dati.length;
+  dati.forEach((d, i)=>{
+    const x = gx + i*bw + bw*0.18, w = bw*0.64, hn = gh * d.n / sc1.max, hk = gh * d.km / sc1.max, on = sel.has(d.k);
+    doc.setFillColor(on ? PDFC.oxford : "#A5B4C8"); if (hn > 0) doc.rect(x, gy + gh - hn, w, hn, "F");
+    doc.setFillColor(on ? PDFC.amber : "#E2C29F"); if (hk > 0) doc.rect(x, gy + gh - hn - hk, w, hk, "F");
+    if (i % 2 === 1 || dati.length <= 6) T(fmtMeseBreve(d.k), x + w/2, gy + gh + 4, "courier", "normal", 5.5, PDFC.meta, {align:"center"});
+  });
+  const x2 = M + cw + 6;
+  box(x2, "Penetrazione dei finanziamenti");
+  const px = x2 + 12, pw = cw - 16;
+  const sc2 = scala(Math.max(10, ...dati.map(d=>d.pen).filter(v=>v != null)));
+  for (let i=0;i<=4;i++){ const yy = gy + gh - gh*i/4; doc.setDrawColor(i ? PDFC.s200 : PDFC.ink); doc.setLineWidth(i ? 0.15 : 0.3); doc.line(px, yy, px + pw, yy); T(fmtNum(sc2.step*i) + "%", px - 1.5, yy + 1, "courier", "normal", 5.8, PDFC.meta, {align:"right"}); }
+  const xp = i => px + (dati.length === 1 ? pw/2 : pw * i / (dati.length - 1)), yp = v => gy + gh - gh * v / sc2.max;
+  doc.setDrawColor(PDFC.accent); doc.setLineWidth(0.6);
+  let prev = null;
+  dati.forEach((d, i)=>{ if (d.pen == null){ prev = null; return; } const pt = [xp(i), yp(d.pen)]; if (prev) doc.line(prev[0], prev[1], pt[0], pt[1]); prev = pt; });
+  dati.forEach((d, i)=>{
+    if (d.pen != null){ const on = sel.has(d.k), s = on ? 1.1 : 0.8; doc.setFillColor(on ? PDFC.accent : PDFC.card); doc.setDrawColor(PDFC.accent); doc.setLineWidth(0.35); doc.rect(xp(i) - s, yp(d.pen) - s, 2*s, 2*s, "FD"); }
+    if (i % 2 === 1 || dati.length <= 6) T(fmtMeseBreve(d.k), xp(i), gy + gh + 4, "courier", "normal", 5.5, PDFC.meta, {align:"center"});
+  });
+  y = cy + chh + 10;
+  if (per.m.length > 1){
+    T("CONFRONTO", M, y, "courier", "bold", 7, PDFC.accent); y += 5;
+    T("Per marchio", M, y, "times", "bold", 14, PDFC.ink); y += 4;
+    const cols = [["Marchio", 30, "left"], ["Contratti", 20], ["Quota", 17], ["Var.", 19], ["Finanz.", 18], ["Penetr.", 18], ["Captive", 17], ["Liquid.", 17], ["Liq./imm.", 22]];
+    const gr = aggrega(P.keys, MARCHI.map(m=>m.k)), rh = 7;
+    doc.setDrawColor(PDFC.s800); doc.setLineWidth(0.3); doc.line(M, y, M + CW, y); doc.line(M, y + rh, M + CW, y + rh);
+    let x = M;
+    cols.forEach(([t, w, al])=>{ T(t.toUpperCase(), al === "left" ? x + 1 : x + w - 1, y + 4.6, "courier", "bold", 6.3, PDFC.ink2, {align: al === "left" ? "left" : "right"}); x += w; });
+    y += rh;
+    const riga = (nome, r, rc, tot) => {
+      const dv = rc ? variazione(r.v_t, rc.v_t) : null;
+      const celle = [nome, fmt(r.v_t), fmtP(pct(r.v_t, gr.v_t)), fmtVar(dv), fmt(r.fin_t), fmtP(r.pen), fmt(r.capt_t), fmt(r.liq), fmtP(r.liq_p)];
+      let xx = M;
+      cols.forEach(([, w, al], i)=>{
+        const col = i === 3 && dv != null && dv > 0.05 ? PDFC.accent : (i === 0 ? PDFC.ink : PDFC.ink2);
+        if (i === 0) T(celle[i], xx + 1, y + 4.7, "helvetica", "bold", 8.2, col);
+        else T(celle[i], xx + w - 1, y + 4.7, "courier", tot ? "bold" : "normal", 7.8, col, {align:"right"});
+        xx += w;
+      });
+      doc.setDrawColor(tot ? PDFC.ink : PDFC.s200); doc.setLineWidth(tot ? 0.6 : 0.2); doc.line(M, y + rh, M + CW, y + rh);
+      if (tot){ doc.setLineWidth(0.3); doc.line(M, y, M + CW, y); }
+      y += rh;
+    };
+    per.m.forEach(k=>riga(MK[k].t, aggrega(P.keys, [k]), P.cmpOk && !a.parziale ? aggrega(P.cmp, [k]) : null, false));
+    riga(`Totale ${per.t.toLowerCase()}`, a, cc, true);
+    y += 9;
+  } else {
+    const Mk = MK[per.m[0]];
+    T("CREDITO", M, y, "courier", "bold", 7, PDFC.accent); y += 5;
+    T("Finanziamenti per finanziaria", M, y, "times", "bold", 14, PDFC.ink); y += 4;
+    doc.setDrawColor(PDFC.s800); doc.setLineWidth(0.3); doc.line(M, y, M + CW, y);
+    Mk.fin.forEach(([fk, lab])=>{ T(lab, M + 1, y + 4.7, "helvetica", "bold", 8.5, PDFC.ink); T(fmt(a.finM[fk] || 0), M + 110, y + 4.7, "courier", "normal", 8.5, PDFC.ink, {align:"right"}); T(fmtP(pct(a.finM[fk] || 0, a.v_t)) + " dei contratti", M + CW - 1, y + 4.7, "courier", "normal", 8, PDFC.meta, {align:"right"}); doc.setDrawColor(PDFC.s200); doc.setLineWidth(0.2); doc.line(M, y + 7, M + CW, y + 7); y += 7; });
+    y += 9;
+  }
+  const punti = puntiChiave(P, per, a, c);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+  const blocchi = punti.map(p=>doc.splitTextToSize(p, CW - 14));
+  const bh = 14 + blocchi.reduce((s,b)=>s + b.length*4.4 + 1.8, 0);
+  doc.setFillColor(PDFC.deep); doc.rect(M, y, CW, bh, "F"); doc.setDrawColor(PDFC.accent); doc.setLineWidth(0.7); doc.line(M, y, M + CW, y);
+  T("IN EVIDENZA", M + 5, y + 6.5, "courier", "bold", 7, PDFC.accent);
+  let yy = y + 12.5;
+  blocchi.forEach(r=>{ doc.setFillColor(PDFC.accent); doc.rect(M + 5, yy - 2.4, 1.6, 1.6, "F"); T(r, M + 9.5, yy, "helvetica", "normal", 9, PDFC.ink); yy += r.length*4.4 + 1.8; });
+  doc.setDrawColor(PDFC.ink); doc.setLineWidth(0.3); doc.line(M, 280, W - M, 280);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(6.8);
+  T(doc.splitTextToSize("Fonte: Report Finanziamenti del Gruppo Autoimport (dati inseriti mese per mese; storico dal file Excel). Nei periodi di più mesi i conteggi sono sommati e le percentuali ricalcolate sui totali. Leapmotor e CA + Leasys sono inclusi nei totali.", CW), M, 284, "helvetica", "normal", 6.8, PDFC.meta);
+  return doc;
+}
+async function scaricaReport(){
+  const cur = periodoCorrente(); if (!cur) return;
+  const {P, per} = cur;
+  const a = aggrega(P.keys, per.m), c = P.cmpOk ? aggrega(P.cmp, per.m) : null;
+  const lib = window.jspdf && window.jspdf.jsPDF;
+  if (!lib){ toast("Report non disponibile", "La libreria per il PDF non si è caricata: ricarica la pagina.", true); return; }
+  if (!S.downloads){ toast("Download non disponibile qui", "Apri la pagina su claude.ai per scaricare il report.", true); return; }
+  V.pdfInCorso = true; render();
+  try {
+    const doc = costruisciPDF(lib, P, per, a, c);
+    const nome = `Report finanziamenti ${per.t} ${P.label}`.replace(/[\/\\:*?"<>|°]/g, "").replace(/\s+/g, " ").trim() + ".pdf";
+    await S.downloads.save({filename:nome, data:doc.output("blob")});
+    toast("Report pronto", nome);
+  } catch(e){
+    const code = e && e.code;
+    if (code === "declined") {}
+    else if (code === "rate_limited") toast("Download già in corso", "Conferma o chiudi la richiesta aperta, poi riprova.", true);
+    else if (code === "unavailable" || code === "not_granted" || code === "capability_disabled" || code === "capability_removed"){ S.downloads = null; toast("Download non disponibile qui", "Apri la pagina su claude.ai per scaricare il report.", true); }
+    else toast("Report non riuscito", "Riprova tra qualche istante.", true);
+  }
+  V.pdfInCorso = false; render();
+}
+
+/* ---------- render ---------- */
+function render(){
+  $("#tab-cruscotto").setAttribute("aria-pressed", V.tab === "cruscotto");
+  $("#tab-inserisci").setAttribute("aria-pressed", V.tab === "inserisci");
+  $("#tab-inserisci").hidden = S.mode === "statico" || (S.mode === "db" && !S.owner);
+  if (S.mode === "statico" && V.tab === "inserisci") V.tab = "cruscotto";
+  const ks = chiavi();
+  $("#stato-dati").innerHTML = ks.length ? `Ultimo mese: <b>${esc(fmtMese(ks[ks.length-1]))}</b>${S.docs[ks[ks.length-1]].parziale ? " · in corso" : ""}${S.mode === "statico" && S.generato ? ` · copia del ${esc(S.generato)}` : ""}` : "";
+  $("#azione-testata").innerHTML = V.tab === "cruscotto" && ks.length && S.downloads !== null ? `<button class="btn primary t" id="scarica-pdf" ${V.pdfInCorso ? "disabled" : ""}>${V.pdfInCorso ? "Preparazione…" : "Scarica report PDF"}</button>` : "";
+  $("#vista").innerHTML = V.tab === "cruscotto" ? vistaCruscotto() : vistaInserisci();
+  if (V.tab === "cruscotto") disegnaGrafici();
+}
+
+/* ---------- eventi ---------- */
+document.addEventListener("click", async e=>{
+  const t = e.target.closest ? (e.target.closest("button, tr[data-perimetro]") || e.target) : e.target;
+  if (t.id === "tab-cruscotto"){ V.tab = "cruscotto"; render(); return; }
+  if (t.id === "tab-inserisci" || t.id === "vai-inserisci"){ V.tab = "inserisci"; render(); return; }
+  const g = e.target.closest && e.target.closest("[data-gran]"); if (g){ V.gran = g.getAttribute("data-gran"); V.periodo = null; render(); return; }
+  const pr = e.target.closest && e.target.closest("[data-perimetro]"); if (pr){ V.perimetro = pr.getAttribute("data-perimetro"); render(); return; }
+  const em = e.target.closest && e.target.closest("[data-emarchio]"); if (em){ E.marchio = em.getAttribute("data-emarchio"); render(); return; }
+  if (t.id === "aggiungi-modello"){
+    const nome = ($("#nuovo-modello").value || "").trim().toUpperCase().replace(/[.]/g, "");
+    if (nome && E.marchio !== "gruppo"){ set(E.draft, `brand.${E.marchio}.loyalty_modelli.${nome}`, 0); salvaBozza(); render(); }
+    return;
+  }
+  if (t.id === "salva"){ salva(); return; }
+  if (t.id === "scarica-pdf"){ if (!V.pdfInCorso) scaricaReport(); return; }
+  if (t.id === "svuota"){ scartaBozza(); caricaDraft(E.mese); render(); toast("Modifiche annullate", "Il modulo mostra di nuovo i dati salvati."); return; }
+  if (t.id === "elimina"){
+    if (!E.conferma){ E.conferma = true; render(); return; }
+    const mese = E.mese;
+    try { await S.coll.doc(mese).delete(); scartaBozza(); caricaDraft(mese); toast("Mese eliminato", cap(fmtMese(mese))); }
+    catch(err){ toast("Eliminazione non riuscita", "Riprova tra qualche istante.", true); }
+    E.conferma = false; render(); return;
+  }
+});
+document.addEventListener("keydown", e=>{ if (e.key === "Enter"){ const pr = e.target.closest && e.target.closest("tr[data-perimetro]"); if (pr){ V.perimetro = pr.getAttribute("data-perimetro"); render(); } } });
+document.addEventListener("change", e=>{
+  const t = e.target;
+  if (t.id === "sel-periodo"){ V.periodo = t.value; render(); return; }
+  if (t.id === "sel-perimetro"){ V.perimetro = t.value; render(); return; }
+  if (t.id === "e-mese" || t.id === "e-anno"){ caricaDraft(mk(Number($("#e-anno").value), Number($("#e-mese").value))); render(); return; }
+  if (t.id === "f-parziale"){ E.draft.parziale = t.checked; salvaBozza(); return; }
+});
+document.addEventListener("input", e=>{
+  const t = e.target;
+  if (t.id === "f-nota"){ E.draft.nota = t.value; salvaBozza(); return; }
+  const p = t.getAttribute && t.getAttribute("data-path"); if (!p) return;
+  set(E.draft, p, t.value === "" ? null : Math.max(0, Math.round(Number(t.value))));
+  salvaBozza(); aggiornaRiepiloghi();
+});
+
+/* ---------- avvio ---------- */
+function avviaStatico(){
+  /* copia pubblicata fuori da claude.ai (GitHub Pages): dati incorporati, sola lettura, PDF scaricato dal browser */
+  const st = window.DATI_STATICI;
+  S.mode = "statico"; S.owner = false; S.docs = {};
+  (st.mesi || []).forEach(d=>{ if (d && /^\d{4}-\d{2}$/.test(d.mese)) S.docs[d.mese] = d; });
+  S.generato = st.generato || null;
+  S.downloads = {save: ({filename, data}) => new Promise(ok=>{
+    const url = URL.createObjectURL(data), a = document.createElement("a");
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000); ok({status:"saved"});
+  })};
+  render();
+}
+async function avvia(){
+  const c = window.claude;
+  if ((!c || typeof c.use !== "function") && window.DATI_STATICI){ avviaStatico(); return; }
+  if (!c || typeof c.use !== "function"){ S.mode = "assente"; S.downloads = null; render(); return; }
+  c.use("downloads").then(dl=>{ S.downloads = dl || null; render(); }, ()=>{ S.downloads = null; render(); });
+  try {
+    const [db, user] = await Promise.all([c.use("db"), c.use("user")]);
+    S.owner = user ? await user.isOwner() : false;
+    if (!db){ S.mode = "assente"; render(); return; }
+    S.coll = db.collection("mesi"); S.mode = "db";
+    S.coll.onSnapshot(snap=>{
+      const docs = {};
+      snap.docs.forEach(d=>{ if (/^\d{4}-\d{2}$/.test(d.id)) docs[d.id] = d.data(); });
+      S.docs = docs; render();
+    }, ()=>{ S.mode = "assente"; render(); });
+  } catch(e){ S.mode = "assente"; render(); }
+}
+render();
+avvia();
+})();
+</script>
+</body>
+</html>
