@@ -1,7 +1,7 @@
 """Costruisce index.html per GitHub Pages: il Report Finanziamenti con i dati letti da Supabase.
 
 La pagina contiene solo il codice. I mesi stanno su Supabase e si vedono solo dopo l'accesso con
-link via email; le regole del database (sql/01_schema.sql) decidono chi legge e chi scrive.
+email e password; le regole del database (sql/01_schema.sql) decidono chi legge e chi scrive.
 La chiave qui sotto è quella pubblica ("publishable"): è fatta per stare nel browser.
 
 Uso, dalla cartella report-finanziamenti-supabase:

@@ -760,10 +760,12 @@ async function scaricaReport(){
 /* ---------- render ---------- */
 function vistaAccesso(){
   if (S.mode === "negato") return vuoto("Accesso", "Questa email non è abilitata", `Sei entrato come ${S.email || "utente sconosciuto"}, ma non è tra le persone che possono vedere il report. Chiedi l'accesso a Luca.`, `<div><button class="btn t" id="esci">Esci</button></div>`);
-  if (S.linkInviato) return vuoto("Accesso", "Controlla la posta", `Ti abbiamo inviato un link a ${S.linkInviato}. Aprilo da questo dispositivo per entrare. Se non arriva, guarda nello spam.`, `<div><button class="btn t" id="altra-email">Usa un'altra email</button></div>`);
-  return `<div class="panel"><div class="empty"><p class="kicker">Accesso</p><h3>Entra con la tua email</h3><p>Il report è riservato. Scrivi la tua email di lavoro: ricevi un link per entrare, senza password.</p>
-    <form id="form-accesso" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><input class="inp t" id="email-accesso" type="email" autocomplete="email" required placeholder="nome@azienda.it" aria-label="Email" style="min-width:min(16rem,100%);flex:1;text-align:left;font-family:inherit">
-    <button class="btn primary t" type="submit" ${S.invioInCorso ? "disabled" : ""}>${S.invioInCorso ? "Invio…" : "Ricevi il link"}</button></form></div></div>`;
+  const campo = "min-width:min(14rem,100%);flex:1;text-align:left;font-family:inherit";
+  return `<div class="panel"><div class="empty"><p class="kicker">Accesso</p><h3>Entra nel report</h3><p>Il report è riservato. Usa l'email e la password che ti ha dato Luca.</p>
+    <form id="form-accesso" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <input class="inp t" id="email-accesso" type="email" autocomplete="username" required placeholder="Email" aria-label="Email" style="${campo}">
+    <input class="inp t" id="password-accesso" type="password" autocomplete="current-password" required placeholder="Password" aria-label="Password" style="${campo}">
+    <button class="btn primary t" type="submit" ${S.invioInCorso ? "disabled" : ""}>${S.invioInCorso ? "Accesso…" : "Entra"}</button></form></div></div>`;
 }
 
 function render(){
@@ -800,7 +802,6 @@ document.addEventListener("click", async e=>{
     return;
   }
   if (t.id === "esci"){ await S.sb.auth.signOut(); return; }
-  if (t.id === "altra-email"){ S.linkInviato = null; render(); return; }
   if (t.id === "salva"){ salva(); return; }
   if (t.id === "scarica-pdf"){ if (!V.pdfInCorso) scaricaReport(); return; }
   if (t.id === "svuota"){ scartaBozza(); caricaDraft(E.mese); render(); toast("Modifiche annullate", "Il modulo mostra di nuovo i dati salvati."); return; }
@@ -831,13 +832,12 @@ document.addEventListener("input", e=>{
 document.addEventListener("submit", async e=>{
   if (e.target.id !== "form-accesso") return;
   e.preventDefault();
-  const email = ($("#email-accesso").value || "").trim().toLowerCase();
-  if (!email) return;
+  const email = ($("#email-accesso").value || "").trim().toLowerCase(), password = $("#password-accesso").value || "";
+  if (!email || !password) return;
   S.invioInCorso = true; render();
-  const { error } = await S.sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href.split("#")[0], shouldCreateUser: false } });
+  const { error } = await S.sb.auth.signInWithPassword({ email, password });
   S.invioInCorso = false;
-  if (error){ render(); toast("Link non inviato", error.status === 429 ? "Troppi tentativi: riprova tra qualche minuto." : "Controlla l'email o chiedi l'accesso a Luca.", true); return; }
-  S.linkInviato = email; render();
+  if (error){ render(); $("#email-accesso").value = email; toast("Accesso non riuscito", error.status === 429 ? "Troppi tentativi: riprova tra qualche minuto." : "Email o password non corretti.", true); }
 });
 
 /* ---------- avvio ---------- */
@@ -857,7 +857,7 @@ function avviaStatico(){
   render();
 }
 async function avviaSupabase(cfg){
-  /* versione su GitHub Pages con i dati su Supabase: accesso con link via email, le regole del database decidono chi legge e chi scrive */
+  /* versione su GitHub Pages con i dati su Supabase: accesso con email e password, le regole del database decidono chi legge e chi scrive */
   if (!window.supabase){ S.mode = "assente"; S.downloads = null; render(); return; }
   const sb = window.supabase.createClient(cfg.url, cfg.chiave);
   S.sb = sb; S.downloads = downloadBrowser;

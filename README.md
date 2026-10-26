@@ -1,6 +1,6 @@
 # Report Finanziamenti su Supabase
 
-La versione del Report Finanziamenti da aprire fuori da claude.ai, con un link. La pagina su GitHub Pages contiene solo il codice: i mesi stanno su Supabase e si vedono solo dopo l'accesso con un link via email. Luca inserisce i mesi nuovi direttamente da questa pagina.
+La versione del Report Finanziamenti da aprire fuori da claude.ai, con un link. La pagina su GitHub Pages contiene solo il codice: i mesi stanno su Supabase e si vedono solo dopo l'accesso con email e password (create da Luca su Supabase). Luca inserisce i mesi nuovi direttamente da questa pagina.
 
 ## Come è fatto
 - `index.html` – la pagina pubblicata. Si genera con `python costruisci.py` dalla pagina su claude.ai (`../2026-10-26_bozza_mensile-finanziamenti.html`), che resta l'unica fonte del codice.
